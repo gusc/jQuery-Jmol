@@ -93,7 +93,7 @@ var JmolCallbackWrapper = (function($){
 		/**
 		* HTML template for Jmol applet
 		*/
-		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" class="jmol%class%" width="%width%" height="%height%"%add_params%>'
+		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" class="jmol-viewer%class%" width="%width%" height="%height%"%add_params%>'
   		+ '<param name="syncId" value="%sync_id%"/>'
   		+ '<param name="progressbar" value="true">'
   		+ '<param name="progresscolor" value="blue">'
@@ -115,7 +115,7 @@ var JmolCallbackWrapper = (function($){
   		+ '<param name="messageCallback" value="JmolCallbackWrapper.cbMessage" />'
   		+ '<param name="pickCallback" value="JmolCallbackWrapper.cbPick" />'
   		+ '<param name="scriptCallback" value="JmolCallbackWrapper.cbScript" />'
-  		//+ '<param name="syncCallback" value="JmolCallbackWrapper.cbSync" />'
+  		+ '<param name="syncCallback" value="JmolCallbackWrapper.cbSync" />'
   		
   		+ '<p style="background-color:yellow; color:black; width:400px;height:400px;text-align:center;vertical-align:middle;">'
 			+ 'You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br>'
@@ -158,14 +158,26 @@ var JmolCallbackWrapper = (function($){
 			var ret = this;
 			this.each(function(i, item) {
 				var $item = $(item);
-				if ($item.is('.jmol')){
+				if ($item.is('.jmol-viewer')){
 					if (typeof command == 'string'){
-						var o = $item.get(0);
+						var id = $item.attr('id');
+						var applet = document.getElementById(id);
 						// Default action is to pass anything as a script to jmol applet
 						// We don't want to over-abstract anything, jquery plugin is only used for
 						// the ease of initialization and communication, everything else should be
 						// done in one language, that is Jmol scripting language
-						o.script(command);
+						if (typeof applet.script == 'function'){
+							applet.script(command);
+						} else {
+							// Well this is a nasty cheat :)
+							var $tmp = $('<div></div>');
+							$item.replaceWith($tmp);
+							$tmp.replaceWith($item);
+							$tmp = null;
+							// TODO: add some script queue to execute with onReady callback
+							applet.script(command);
+						}
+						applet = null;
 					} else if (typeof command == 'object'){
 						// TODO: update options and send some commands (for example background color, etc.)
 						console.log('jMol option update not implemented');
@@ -189,8 +201,10 @@ var JmolCallbackWrapper = (function($){
 					}
 					$applet = _buildApplet(id, cls, options);
 					$item.replaceWith($applet);
+					$item = null;
 					$item = $applet;
 					_optionsCache[id] = options;
+					$applet = null;
 				} else {
 					// Well ther's your problem, sir
 					console.log('Error in initializing jMol');
@@ -237,9 +251,9 @@ var JmolCallbackWrapper = (function($){
 						id : a[0],
 						num : a[1],
 						coords : {
-							x : a[2],
-							y : a[3],
-							z : a[4]
+							x : parseFloat(a[2]),
+							y : parseFloat(a[3]),
+							z : parseFloat(a[4])
 						}
 					};
 					options.onPick(atom);

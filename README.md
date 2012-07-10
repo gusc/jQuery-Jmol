@@ -40,48 +40,50 @@ $(document).ready(function(){
 Options
 =======
 
-*appletUrl* - URL to the directory where Jmol applets reside
-*appletFile* - Jmol applets file name (default: JmolApplet0.jar)
-*syncId* - Jmol sync ID, if 0 specified new one will be generated (default: 0)
-*memLimit* - Java memory limit in megabytes (default: 512)
-*width* - Width of an applet window (default: 400)
-*height* - height of an applet window (default: 300)
-*menuUrl* - Jmol menu file URL (default: 'jmol.mnu')
-*modelUrl* - model file to load at startup (default: '')
-*background* - background color of Jmol applet (default: '#000000')
+* appletUrl - URL to the directory where Jmol applets reside
+* appletFile - Jmol applets file name (default: JmolApplet0.jar)
+* syncId - Jmol sync ID, if 0 specified new one will be generated (default: 0)
+* memLimit - Java memory limit in megabytes (default: 512)
+* width - Width of an applet window (default: 400)
+* height - height of an applet window (default: 300)
+* menuUrl - Jmol menu file URL (default: 'jmol.mnu')
+* modelUrl - model file to load at startup (default: '')
+* background - background color of Jmol applet (default: '#000000')
 
 There are also callback options, where you specify your own callback function.
 
-*onReady* - called when applet becomes ready
-*onDestroy* - called when applet has been destroyed
-*onEcho* - echo message callback
-    msg - string message
-*onHover* -  called when a mouse hover an atom. 
-    name - name of an atom as a string
-    idx - atom index
-*onLoad* - called when a model file has been loaded.
-    url - URL of a model file
-    file_name - model file name without a directory path
-    name - internal name of a model
-    err_msg - error message if any
-    err_no - error code
-    frame_prev - prior frame
-    frame_last - last frame
-*onMeasure* - called when a measurement has been made. 
-    msg - measurement messsage as a string
-*onMessage* - called when a message has been sent from an applet.
-    msg - string message
-*onPick* - called when an atom has been clicked on
-    atom - an object of atom data:
-      id - atom ID,
-      num - atom number
+* onReady - called when applet becomes ready
+* onDestroy - called when applet has been destroyed
+* onEcho - echo message callback
+** msg - string message
+* onHover -  called when a mouse hover an atom. 
+** name - name of an atom as a string
+** idx - atom index
+* onLoad - called when a model file has been loaded.
+** url - URL of a model file
+** file_name - model file name without a directory path
+** name - internal name of a model
+** err_msg - error message if any
+** err_no - error code
+** frame_prev - prior frame
+** frame_last - last frame
+* onMeasure - called when a measurement has been made. 
+** msg - measurement messsage as a string
+* onMessage - called when a message has been sent from an applet.
+** msg - string message
+* onPick - called when an atom has been clicked on
+** atom - an object of atom data:
+<pre>
+      id : atom id,
+      num : atom number
       coords : {
-        x : float,
-        y : float,
-        z : float
+        x : float x coordinate,
+        y : float y coordinate,
+        z : float z coordinate
       }
-*onScript* - called when a script is being processed
-    msg - string message
+</pre>
+* onScript - called when a script is being processed
+** msg - string message
 
 Changelog
 =========

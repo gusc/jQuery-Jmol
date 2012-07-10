@@ -37,6 +37,15 @@ $(document).ready(function(){
 });
 ```
 
+Sending script messages after initialization
+============================================
+
+```javascript
+// after initialization jmol method will route all the calls to the script method
+// of Jmol applet. All the commands are documented here: http://chemapps.stolaf.edu/jmol/docs/
+$('#my-jmol-viewer').jmol('load /other_test.pdb'); 
+```
+
 Options
 =======
 
@@ -52,44 +61,38 @@ Options
 
 There are also callback options, where you specify your own callback function.
 
-* onReady - called when applet becomes ready
+* onReady - called when applet becomes ready.
 
-* onDestroy - called when applet has been destroyed
+* onDestroy - called when applet has been destroyed.
 
-* onEcho - echo message callback
+* onEcho - echo message callback. Function arguments sent:
   
   msg - string message
     
-* onHover -  called when a mouse hover an atom. 
+* onHover -  called when a mouse hover an atom. Function arguments sent: 
   
   name - name of an atom as a string
   idx - atom index
     
-* onLoad - called when a model file has been loaded.
+* onLoad - called when a model file has been loaded. Function arguments sent:
   
   url - URL of a model file
-  
   file_name - model file name without a directory path
-  
   name - internal name of a model
-  
   err_msg - error message if any
-  
   err_no - error code
-  
   frame_prev - prior frame
-  
   frame_last - last frame
   
-* onMeasure - called when a measurement has been made. 
+* onMeasure - called when a measurement has been made. Function arguments sent: 
 
   msg - measurement messsage as a string
   
-* onMessage - called when a message has been sent from an applet.
+* onMessage - called when a message has been sent from an applet. Function arguments sent:
   
   msg - string message
   
-* onPick - called when an atom has been clicked on
+* onPick - called when an atom has been clicked on. Function arguments sent:
   
   atom - an object of atom data:
 <pre>
@@ -102,7 +105,7 @@ There are also callback options, where you specify your own callback function.
       }
 </pre>
 
-* onScript - called when a script is being processed
+* onScript - called when a script is being processed. Function arguments sent:
 
   msg - string message
 

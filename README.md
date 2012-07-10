@@ -42,7 +42,7 @@ Sending script messages after initialization
 
 ```javascript
 // after initialization jmol method will route all the calls to the script method
-// of Jmol applet. All the commands are documented here: http://chemapps.stolaf.edu/jmol/docs/
+// of Jmol applet. All the commands are documented on http://chemapps.stolaf.edu/jmol/docs/
 $('#my-jmol-viewer').jmol('load /other_test.pdb'); 
 ```
 

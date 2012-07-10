@@ -55,24 +55,24 @@ There are also callback options, where you specify your own callback function.
 * onReady - called when applet becomes ready
 * onDestroy - called when applet has been destroyed
 * onEcho - echo message callback
-** msg - string message
+    msg - string message
 * onHover -  called when a mouse hover an atom. 
-** name - name of an atom as a string
-** idx - atom index
+    name - name of an atom as a string
+    idx - atom index
 * onLoad - called when a model file has been loaded.
-** url - URL of a model file
-** file_name - model file name without a directory path
-** name - internal name of a model
-** err_msg - error message if any
-** err_no - error code
-** frame_prev - prior frame
-** frame_last - last frame
+    url - URL of a model file
+    file_name - model file name without a directory path
+    name - internal name of a model
+    err_msg - error message if any
+    err_no - error code
+    frame_prev - prior frame
+    frame_last - last frame
 * onMeasure - called when a measurement has been made. 
-** msg - measurement messsage as a string
+    msg - measurement messsage as a string
 * onMessage - called when a message has been sent from an applet.
-** msg - string message
+    msg - string message
 * onPick - called when an atom has been clicked on
-** atom - an object of atom data:
+    atom - an object of atom data:
 <pre>
       id : atom id,
       num : atom number
@@ -83,7 +83,7 @@ There are also callback options, where you specify your own callback function.
       }
 </pre>
 * onScript - called when a script is being processed
-** msg - string message
+    msg - string message
 
 Changelog
 =========

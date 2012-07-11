@@ -102,32 +102,32 @@ var JmolCallbackWrapper = (function($){
 		* HTML template for Jmol applet
 		*/
 		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" class="jmol-initialized%class%" width="%width%" height="%height%"%add_attr%>'
-  		+ '<param name="syncId" value="%sync_id%"/>'
-  		+ '<param name="progressbar" value="true">'
-  		+ '<param name="progresscolor" value="blue">'
-  		+ '<param name="boxbgcolor" value="%bg_color%"/>'
-  		+ '<param name="boxfgcolor" value="black">'
-  		+ '<param name="boxmessage" value="Downloading JmolApplet ...">'
-      + '<param name="mayscript" value="mayscript">'
-  		+ '<param name="codebase" value="%applet_url%" />'
-  		+ '<param name="archive" value="%applet_file%" />'
-  		+ '<param name="code" value="JmolApplet.class" />'
-  		+ '<param name="java_arguments" value="%java_args%"/>'
-  		+ '<param name="script" value="%script%"/>'
-  		
-  		+ '%add_param%'
-  		
-  		+ '<param name="appletReadyCallback" value="JmolCallbackWrapper.cbReady" />'
-  		+ '<param name="echoCallback" value="JmolCallbackWrapper.cbEcho" />'
-  		+ '<param name="hoverCallback" value="JmolCallbackWrapper.cbHover" />'
-  		+ '<param name="loadStructCallback" value="JmolCallbackWrapper.cbLoad" />'
-  		+ '<param name="measureCallback" value="JmolCallbackWrapper.cbMeasure" />'
-  		+ '<param name="messageCallback" value="JmolCallbackWrapper.cbMessage" />'
-  		+ '<param name="pickCallback" value="JmolCallbackWrapper.cbPick" />'
-  		+ '<param name="scriptCallback" value="JmolCallbackWrapper.cbScript" />'
-  		+ '<param name="syncCallback" value="JmolCallbackWrapper.cbSync" />'
+			+ '<param name="syncId" value="%sync_id%"/>'
+			+ '<param name="progressbar" value="true">'
+			+ '<param name="progresscolor" value="blue">'
+			+ '<param name="boxbgcolor" value="%bg_color%"/>'
+			+ '<param name="boxfgcolor" value="black">'
+			+ '<param name="boxmessage" value="Downloading JmolApplet ...">'
+			+ '<param name="mayscript" value="mayscript">'
+			+ '<param name="codebase" value="%applet_url%" />'
+			+ '<param name="archive" value="%applet_file%" />'
+			+ '<param name="code" value="JmolApplet.class" />'
+			+ '<param name="java_arguments" value="%java_args%"/>'
+			+ '<param name="script" value="%script%"/>'
 
-  		+ '<p>You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br>'
+			+ '%add_param%'
+
+			+ '<param name="appletReadyCallback" value="JmolCallbackWrapper.cbReady" />'
+			+ '<param name="echoCallback" value="JmolCallbackWrapper.cbEcho" />'
+			+ '<param name="hoverCallback" value="JmolCallbackWrapper.cbHover" />'
+			+ '<param name="loadStructCallback" value="JmolCallbackWrapper.cbLoad" />'
+			+ '<param name="measureCallback" value="JmolCallbackWrapper.cbMeasure" />'
+			+ '<param name="messageCallback" value="JmolCallbackWrapper.cbMessage" />'
+			+ '<param name="pickCallback" value="JmolCallbackWrapper.cbPick" />'
+			+ '<param name="scriptCallback" value="JmolCallbackWrapper.cbScript" />'
+			+ '<param name="syncCallback" value="JmolCallbackWrapper.cbSync" />'
+
+			+ '<p>You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br>'
 			+ 'Check the warning message from your browser and/or enable Java applets in<br>'
 			+ 'your web browser preferences, or install the Java Runtime Environment from <a href="http://www.java.com">www.java.com</a><br></p>'
 			+ '</object>',
@@ -138,23 +138,23 @@ var JmolCallbackWrapper = (function($){
 		/**
 		* Windows CAB URL for Java installer
 		*/
-  	_windowsCabUrl = 'http://java.sun.com/update/1.6.0/jinstall-6u22-windows-i586.cab',
-  	/**
-  	* Internal applet counter, for unique ID generation
-  	*/
-  	_appletCounter = 0,
-  	/**
-  	* Internal option cache
-  	* key: applet HTML ID attribute
-  	* value: option set
-  	*/
-  	_optionsCache = {},
-  	/**
-  	* It seems that "appletReadyCallback" return's an internal wrapper object
-  	* Which we kindly store here to use instead of document.getElementById('some_applet') and then wonder
-  	* why an object does not have a method for no reason.
-  	*/
-  	_applets = {};
+		_windowsCabUrl = 'http://java.sun.com/update/1.6.0/jinstall-6u22-windows-i586.cab',
+		/**
+		* Internal applet counter, for unique ID generation
+		*/
+		_appletCounter = 0,
+		/**
+		* Internal option cache
+		* key: applet HTML ID attribute
+		* value: option set
+		*/
+		_optionsCache = {},
+		/**
+		* It seems that "appletReadyCallback" return's an internal wrapper object
+		* Which we kindly store here to use instead of document.getElementById('some_applet') and then wonder
+		* why an object does not have a method for no reason.
+		*/
+		_applets = {};
 		
 		/**
 		* Main entry point for jQuery plugin
@@ -229,6 +229,7 @@ var JmolCallbackWrapper = (function($){
 					if (args[2]){
 						// Funny thing about Jmol Java applet :)
 						// Hacking is the way to the victory
+						console.log(args[3]);
 						_applets[args[0]] = args[3];
 						options.onReady(args[1]);
 					} else {
@@ -296,7 +297,7 @@ var JmolCallbackWrapper = (function($){
 		_appletScript = function(id, command){
 			var applet = _appletFind(id);
 			if (applet){
-				if (typeof applet.script == 'function'){
+				if (typeof applet.script != 'undefined'){ // IE says it's unknown, everybody else says it's a function
 					applet.script(command);
 					applet = null;
 					return true;
@@ -339,7 +340,7 @@ var JmolCallbackWrapper = (function($){
 			if (options['modelUrl'].length > 0){
 				script += 'load ' + options['modelUrl'] + ';';
 			}
-			var html = _htmlTemplate.replace('%add_attr%', add_param);
+			var html = _htmlTemplate.replace('%add_attr%', add_attr);
 			html = html.replace('%add_param%', add_param);
 			html = html.replace('%sync_id%', options['syncId']);
 			html = html.replace('%id%', id);

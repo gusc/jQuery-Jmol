@@ -4,7 +4,7 @@
  * 
  * Copyright (c) 2012 Gusts 'gusC' Kaksis
  * 
- * Version: 1.0.0 alpha (10/07/2012)
+ * Version: 1.0.1 alpha (11/07/2012)
  * Requires: jQuery v1.4+
  *
  * Licensed under the MIT license:
@@ -69,7 +69,7 @@ var JmolCallbackWrapper = (function($){
 		var _defaults = {
 			// Jmol initialization properties
 			appletUrl : '',
-			appletFile : 'JmolApplet0.jar',
+			useSigned : false,
 			syncId: 0,
 			memLimit: 512,
 			width: 400,
@@ -91,9 +91,17 @@ var JmolCallbackWrapper = (function($){
 			onSync: function (msg) { return 1; },
 		},
 		/**
+		* Unsigned applet file
+		*/
+		_appletFile = 'JmolApplet0.jar', 
+		/**
+		* Signed applet file
+		*/
+		_appletFileSigned = 'JmolAppletSigned0.jar', 
+		/**
 		* HTML template for Jmol applet
 		*/
-		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" class="jmol-viewer%class%" width="%width%" height="%height%"%add_params%>'
+		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" class="jmol-initialized%class%" width="%width%" height="%height%"%add_params%>'
   		+ '<param name="syncId" value="%sync_id%"/>'
   		+ '<param name="progressbar" value="true">'
   		+ '<param name="progresscolor" value="blue">'
@@ -158,29 +166,17 @@ var JmolCallbackWrapper = (function($){
 			var ret = this;
 			this.each(function(i, item) {
 				var $item = $(item);
-				if ($item.is('.jmol-viewer')){
+				if ($item.is('.jmol-initialized')){
 					if (typeof command == 'string'){
 						var id = $item.attr('id');
-						var applet = document.getElementById(id);
 						// Default action is to pass anything as a script to jmol applet
 						// We don't want to over-abstract anything, jquery plugin is only used for
 						// the ease of initialization and communication, everything else should be
 						// done in one language, that is Jmol scripting language
-						if (typeof applet.script == 'function'){
-							applet.script(command);
-						} else {
-							// Well this is a nasty cheat :)
-							var $tmp = $('<div></div>');
-							$item.replaceWith($tmp);
-							$tmp.replaceWith($item);
-							$tmp = null;
-							// TODO: add some script queue to execute with onReady callback
-							applet.script(command);
-						}
-						applet = null;
+						_script(id, command)
 					} else if (typeof command == 'object'){
 						// TODO: update options and send some commands (for example background color, etc.)
-						console.log('jMol option update not implemented');
+						_debug('jMol option update not implemented');
 					}
 				} else if (typeof command == 'object'){
 					// Initialize only when command is an object and .jmol class is not set
@@ -207,11 +203,42 @@ var JmolCallbackWrapper = (function($){
 					$applet = null;
 				} else {
 					// Well ther's your problem, sir
-					console.log('Error in initializing jMol');
+					_debug('Error in initializing jMol');
 				}
 			});
 			return ret;
 		},
+		/**
+		* Reset DOM tree and wait for Jmol applet to export it's methods to javascript, then pass script to it
+		* @param string - Jmol applet objects ID
+		* @param string - Jmol script
+		*/
+		_reset = function(id, command){
+			// Well this is a nasty cheat :)
+			var $item = $('#' + id);
+			var $tmp = $('<div></div>');
+			$item.replaceWith($tmp);
+			$tmp.replaceWith($item);
+			$tmp = null;
+			// I hope this helps, maybe on slower machines we need a larger timeout
+			setTimeout(function(){
+				_script(id, command);
+			}, 500);
+		},
+		/**
+		* Pass a script to Jmol applet
+		* @param string - Jmol applet object ID
+		* @param string - Jmol script
+		*/
+		_script = function(id, command){
+			var applet = document.getElementById(id);
+			if (typeof applet.script == 'function'){
+				applet.script(command);
+			} else {
+				_reset(id, command);
+			}
+			applet = null;
+		}
 		/**
 		* Callback wrapper function. This function receives messages from JmolCallbackWrapper, which
 		* receives original messages from Jmol applet. This function routes callback messages to any
@@ -221,6 +248,7 @@ var JmolCallbackWrapper = (function($){
 		* @return integer - only for SyncCallback
 		*/
 		_callback = function(name, args){
+			//_debug(args);
 			var options = _optionsCache[args[0]];
 			switch (name){
 				case 'ready':
@@ -262,7 +290,6 @@ var JmolCallbackWrapper = (function($){
 					options.onScript(args[1]);
 					break;
 			}
-			console.log(name, args);
 		},
 		/**
 		* Build applet's HTML block from a template
@@ -291,11 +318,21 @@ var JmolCallbackWrapper = (function($){
 			html = html.replace('%width%', options['width']);
 			html = html.replace('%height%', options['height']);
 			html = html.replace('%applet_url%', options['appletUrl']);
-			html = html.replace('%applet_file%', options['appletFile']);
+			html = html.replace('%applet_file%', (options['useSigned'] ? _appletFileSigned : _appletFile));
 			html = html.replace('%java_args%', '-Xmx' + options['memLimit'] + 'm');
 			html = html.replace('%bg_color%', options['background']);
 			html = html.replace('%script%', script);
 			return $(html);
+		},
+		/**
+		* Debug wrapper
+		*/
+		_debug = function(msg){
+			if (typeof console == 'object'){
+				console.log(msg);
+			} else {
+				//alert(msg);
+			}
 		};
 		
 		return {

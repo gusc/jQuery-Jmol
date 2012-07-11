@@ -50,7 +50,7 @@ Options
 =======
 
 * appletUrl - URL to the directory where Jmol applets reside
-* appletFile - Jmol applets file name (default: JmolApplet0.jar)
+* useSigned - Weather to use signed or unsigned applet (default: false)
 * syncId - Jmol sync ID, if 0 specified new one will be generated (default: 0)
 * memLimit - Java memory limit in megabytes (default: 512)
 * width - Width of an applet window (default: 400)
@@ -61,57 +61,48 @@ Options
 
 There are also callback options, where you specify your own callback function.
 
-* onReady - called when applet becomes ready.
-
-* onDestroy - called when applet has been destroyed.
-
-* onEcho - echo message callback. Function arguments sent:
-  
-  msg - string message
-    
-* onHover -  called when a mouse hover an atom. Function arguments sent: 
-  
-  name - name of an atom as a string
-  idx - atom index
-    
-* onLoad - called when a model file has been loaded. Function arguments sent:
-  
-  url - URL of a model file
-  file_name - model file name without a directory path
-  name - internal name of a model
-  err_msg - error message if any
-  err_no - error code
-  frame_prev - prior frame
-  frame_last - last frame
-  
-* onMeasure - called when a measurement has been made. Function arguments sent: 
-
-  msg - measurement messsage as a string
-  
-* onMessage - called when a message has been sent from an applet. Function arguments sent:
-  
-  msg - string message
-  
-* onPick - called when an atom has been clicked on. Function arguments sent:
-  
-  atom - an object of atom data:
+* **onReady**(uid) - called when applet becomes ready. Arguments:
+ * **uid** - unique ID of applet
+* **onDestroy**(uid) - called when applet has been destroyed.Arguments:
+ * **uid** - unique ID of applet
+* **onEcho**(msg) - echo message callback. Arguments:
+ * **msg** - string message
+* **onHover**(name, idx) -  called when a mouse hover an atom. Arguments: 
+ * **name** - name of an atom as a string
+ * **idx** - atom index
+* **onLoad**(url, file_name, name, err_msg, err_no, frame_prev, frame_last) - called when a model file has been loaded. Arguments:
+ * **url** - URL of a model file
+ * **file_name** - model file name without a directory path
+ * **name** - internal name of a model
+ * **err_msg** - error message if any
+ * **err_no** - error code
+ * **frame_prev** - prior frame
+ * **frame_last** - last frame
+* **onMeasure**(msg) - called when a measurement has been made. Arguments: 
+ * **msg** - measurement messsage as a string
+* **onMessage**(msg) - called when a message has been sent from an applet. Arguments:
+ * **msg** - string message
+* **onPick**(atom) - called when an atom has been clicked on. Arguments:
+ * **atom** - an object of atom data:
 <pre>
       id : atom id,
       num : atom number
       coords : {
-        x : float x coordinate,
-        y : float y coordinate,
-        z : float z coordinate
+        x : x coordinate,
+        y : y coordinate,
+        z : z coordinate
       }
 </pre>
-
-* onScript - called when a script is being processed. Function arguments sent:
-
-  msg - string message
+* onScript(msg) - called when a script is being processed. Arguments:
+ * **msg** - string message
 
 Changelog
 =========
 
+2012.07.11 1.0.1 alpha
+  Removed applet file name from jQuery options, now they are hard coded
+	Introduced useSigned:Boolean option, weather to load signed or unsigned applet
+	Little more cheating on unresponsive Java applet - reset DOM tree and try to push scripts after setTimeout
+  
 2012.07.10 1.0.0 alpha
   Initial release
-

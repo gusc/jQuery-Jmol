@@ -4,7 +4,7 @@
  * 
  * Copyright (c) 2012 Gusts 'gusC' Kaksis
  * 
- * Version: 1.0.1 alpha (11/07/2012)
+ * Version: 1.0.2 alpha (11/07/2012)
  * Requires: jQuery v1.4+
  *
  * Licensed under the MIT license:
@@ -74,7 +74,7 @@ var JmolCallbackWrapper = (function($){
 			memLimit: 512,
 			width: 400,
 			height: 300,
-			menuUrl : 'jmol.mnu',
+			menuUrl : '',
 			modelUrl : '',
 			background: '#000000',
 			
@@ -101,19 +101,21 @@ var JmolCallbackWrapper = (function($){
 		/**
 		* HTML template for Jmol applet
 		*/
-		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" class="jmol-initialized%class%" width="%width%" height="%height%"%add_params%>'
+		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" class="jmol-initialized%class%" width="%width%" height="%height%"%add_attr%>'
   		+ '<param name="syncId" value="%sync_id%"/>'
   		+ '<param name="progressbar" value="true">'
   		+ '<param name="progresscolor" value="blue">'
   		+ '<param name="boxbgcolor" value="%bg_color%"/>'
   		+ '<param name="boxfgcolor" value="black">'
   		+ '<param name="boxmessage" value="Downloading JmolApplet ...">'
-      + '<param name="mayscript" value="true">'
-  		+ '<param name="code" value="JmolApplet" />'
+      + '<param name="mayscript" value="mayscript">'
   		+ '<param name="codebase" value="%applet_url%" />'
   		+ '<param name="archive" value="%applet_file%" />'
+  		+ '<param name="code" value="JmolApplet.class" />'
   		+ '<param name="java_arguments" value="%java_args%"/>'
   		+ '<param name="script" value="%script%"/>'
+  		
+  		+ '%add_param%'
   		
   		+ '<param name="appletReadyCallback" value="JmolCallbackWrapper.cbReady" />'
   		+ '<param name="echoCallback" value="JmolCallbackWrapper.cbEcho" />'
@@ -124,9 +126,8 @@ var JmolCallbackWrapper = (function($){
   		+ '<param name="pickCallback" value="JmolCallbackWrapper.cbPick" />'
   		+ '<param name="scriptCallback" value="JmolCallbackWrapper.cbScript" />'
   		+ '<param name="syncCallback" value="JmolCallbackWrapper.cbSync" />'
-  		
-  		+ '<p style="background-color:yellow; color:black; width:400px;height:400px;text-align:center;vertical-align:middle;">'
-			+ 'You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br>'
+
+  		+ '<p>You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br>'
 			+ 'Check the warning message from your browser and/or enable Java applets in<br>'
 			+ 'your web browser preferences, or install the Java Runtime Environment from <a href="http://www.java.com">www.java.com</a><br></p>'
 			+ '</object>',
@@ -147,7 +148,13 @@ var JmolCallbackWrapper = (function($){
   	* key: applet HTML ID attribute
   	* value: option set
   	*/
-  	_optionsCache = {};
+  	_optionsCache = {},
+  	/**
+  	* It seems that "appletReadyCallback" return's an internal wrapper object
+  	* Which we kindly store here to use instead of document.getElementById('some_applet') and then wonder
+  	* why an object does not have a method for no reason.
+  	*/
+  	_applets = {};
 		
 		/**
 		* Main entry point for jQuery plugin
@@ -168,12 +175,11 @@ var JmolCallbackWrapper = (function($){
 				var $item = $(item);
 				if ($item.is('.jmol-initialized')){
 					if (typeof command == 'string'){
-						var id = $item.attr('id');
 						// Default action is to pass anything as a script to jmol applet
 						// We don't want to over-abstract anything, jquery plugin is only used for
 						// the ease of initialization and communication, everything else should be
 						// done in one language, that is Jmol scripting language
-						_script(id, command)
+						_appletScript($item.attr('id'), command);
 					} else if (typeof command == 'object'){
 						// TODO: update options and send some commands (for example background color, etc.)
 						_debug('jMol option update not implemented');
@@ -195,9 +201,9 @@ var JmolCallbackWrapper = (function($){
 					if (options['syncId'] <= 0){
 						options['syncId'] = _appletCounter;
 					}
-					$applet = _buildApplet(id, cls, options);
-					$item.replaceWith($applet);
-					$item = null;
+					$applet = $(_appletBuildHtml(id, cls, options));
+					$item.after($applet);
+					$item.remove();
 					$item = $applet;
 					_optionsCache[id] = options;
 					$applet = null;
@@ -209,37 +215,6 @@ var JmolCallbackWrapper = (function($){
 			return ret;
 		},
 		/**
-		* Reset DOM tree and wait for Jmol applet to export it's methods to javascript, then pass script to it
-		* @param string - Jmol applet objects ID
-		* @param string - Jmol script
-		*/
-		_reset = function(id, command){
-			// Well this is a nasty cheat :)
-			var $item = $('#' + id);
-			var $tmp = $('<div></div>');
-			$item.replaceWith($tmp);
-			$tmp.replaceWith($item);
-			$tmp = null;
-			// I hope this helps, maybe on slower machines we need a larger timeout
-			setTimeout(function(){
-				_script(id, command);
-			}, 500);
-		},
-		/**
-		* Pass a script to Jmol applet
-		* @param string - Jmol applet object ID
-		* @param string - Jmol script
-		*/
-		_script = function(id, command){
-			var applet = document.getElementById(id);
-			if (typeof applet.script == 'function'){
-				applet.script(command);
-			} else {
-				_reset(id, command);
-			}
-			applet = null;
-		}
-		/**
 		* Callback wrapper function. This function receives messages from JmolCallbackWrapper, which
 		* receives original messages from Jmol applet. This function routes callback messages to any
 		* associated callback method in options.
@@ -248,13 +223,16 @@ var JmolCallbackWrapper = (function($){
 		* @return integer - only for SyncCallback
 		*/
 		_callback = function(name, args){
-			//_debug(args);
 			var options = _optionsCache[args[0]];
 			switch (name){
 				case 'ready':
 					if (args[2]){
+						// Funny thing about Jmol Java applet :)
+						// Hacking is the way to the victory
+						_applets[args[0]] = args[3];
 						options.onReady(args[1]);
 					} else {
+						_applets[args[0]] = null;
 						options.onDestroy(args[1]);
 					}
 					break;
@@ -292,16 +270,67 @@ var JmolCallbackWrapper = (function($){
 			}
 		},
 		/**
+		* Find a Jmol applet
+		* @param string - ID attribute
+		* @return object - hopefully an applet
+		*/
+		_appletFind = function(id){
+			if (typeof _applets[id] != 'undefined'){
+				return _applets[id];
+			} else {
+				var doc = document;
+				if (doc.getElementById(id))
+					return doc.getElementById(id);
+				else if (doc.applets)
+					return doc.applets[id];
+				else
+					return doc[id];
+			}
+		}
+		/**
+		* Pass a script to Jmol applet
+		* @param string - Jmol applet object ID
+		* @param string - Jmol script
+		* @return boolean
+		*/
+		_appletScript = function(id, command){
+			var applet = _appletFind(id);
+			if (applet){
+				if (typeof applet.script == 'function'){
+					applet.script(command);
+					applet = null;
+					return true;
+				} else {
+					_debug('Oppsy daisy, Jmol has no method script()');
+				}
+			} else {
+				_debug('Oppsy daisy, Jmol was not found');
+			}
+			applet = null;
+			return false;
+		},
+		/**
 		* Build applet's HTML block from a template
 		* @param string - ID attribute
 		* @param string - additional class attributes
 		* @param object - jquery plugin options
-		* @return jQuery - jQuery wrapped DOM fragment of applet's HTML code
+		* @return string - applets HTML code
 		*/
-		_buildApplet = function(id, cls, options){
-			var add_params = '';
-			if ($.browser.msie){
-				add_params = ' classid="' + _windowsClassId + '" codebase="' + _windowsCabUrl + '"';
+		_appletBuildHtml = function(id, cls, options){
+			var add_attr = '';
+			if (navigator.userAgent){
+				if (navigator.userAgent.indexOf('MSIE') != -1){
+					// IE - add classid and codebase
+					add_attr = ' classid="' + _windowsClassId + '" codebase="' + _windowsCabUrl + '"';
+				}
+			}
+			var add_param = '';
+			if (navigator.platform){
+				if (navigator.platform.indexOf('Mac') != -1){
+					// MacOS - add command thread to overcome some Java security restrictions
+					// like java.security.AccessControlException: access denied (java.net.SocketPermission...)
+					add_param = '<param name="UseCommandThread" value="true">'; 
+				}
 			}
 			var script = '';
 			if (options['menuUrl'].length > 0){
@@ -310,7 +339,8 @@ var JmolCallbackWrapper = (function($){
 			if (options['modelUrl'].length > 0){
 				script += 'load ' + options['modelUrl'] + ';';
 			}
-			var html = _htmlTemplate.replace('%add_params%', add_params);
+			var html = _htmlTemplate.replace('%add_attr%', add_param);
+			html = html.replace('%add_param%', add_param);
 			html = html.replace('%sync_id%', options['syncId']);
 			html = html.replace('%id%', id);
 			html = html.replace('%name%', id);
@@ -322,7 +352,7 @@ var JmolCallbackWrapper = (function($){
 			html = html.replace('%java_args%', '-Xmx' + options['memLimit'] + 'm');
 			html = html.replace('%bg_color%', options['background']);
 			html = html.replace('%script%', script);
-			return $(html);
+			return html;
 		},
 		/**
 		* Debug wrapper

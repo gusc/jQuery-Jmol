@@ -7,7 +7,6 @@ $(document).ready(function(){
 		appletUrl : 'assets/java/jmol/',
     width: 640,
     height: 480,
-    menuUrl : 'assets/java/jmol/jmol.mnu',
     modelUrl : 'data/ch4.pdb',
     background: '#FFFFFF',
     onEcho : function(msg){

@@ -11,7 +11,7 @@ Installation
 <html lang="en">
 <head> 
   <meta charset="utf-8">
-  <title>Rural Tourism 360</title>
+  <title>jMol Site</title>
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"></script>
   <script type="text/javascript" src="jquery.jmol.min.js"></script>
   <script type="text/javascript" src="main.js"></script>

@@ -1,0 +1,54 @@
+<!DOCTYPE html> 
+<html lang="lv"> 
+<head> 
+	<meta charset="utf-8">
+	<title>jMol Controlls</title>
+	<meta http-equiv="Content-Language" content="lv" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="Lang" content="lv">
+	<meta name="copyright" content="">
+	<meta name="author" content="">  
+	<meta name="description" content="">
+	<meta name="keywords" content="">
+	<link rel="stylesheet" type="text/css" href="assets/css/main.css" media="screen, projection">
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"></script>
+	<script type="text/javascript" src="assets/js/jquery.jmol.min.js"></script>
+	<script type="text/javascript" src="assets/js/controlls.js"></script>
+</head>
+<body>
+	<div id="holder">
+		<div id="wrap">
+			<!-- HEADER -->
+			<div id="header">
+				<h1>jMol - a jQuery plugin for <a href="http://jmol.sourceforge.net/">Jmol</a></h1>
+				<p>This plugin is intended to replace the old-school Jmol.js and add the ease of use of jQuery coding style. Also this plugin is inteded to work with W3C standards compatible tags (maybe breaking backwards compatibility with old-school browsers) and get rid of improper use of inline scripting.</p>
+			</div>
+			<!-- // HEADER -->
+			<div id="content-wrap">
+				<!-- CONTENT -->
+				<div id="content">
+        	<div class="jmol-applet">You are viewing this page with a JavaScript disabled browser. Please enable JavaScript to view Jmol.</div>
+        	<div class="description">
+        		<p>This example illustrates controll scripts for Jmol viewer applet through jQuery plugin. All the scripting code is stored in HTML5 data attribute in each of the links</p>
+        		<ul>
+        			<li><a href="#" class="jmol-controll" data-script="spacefill ONLY">View as spacefill</a></li>
+        			<li><a href="#" class="jmol-controll" data-script="wireframe ONLY">View as wireframe</a></li>
+        			<li><a href="#" class="jmol-controll" data-script="wireframe ONLY;wireframe RESET;spacefill RESET">View as balls&amp;sticks</a></li>
+        		</ul>
+        		<p class="jmol-log">This is a log view for echo commands</p>
+        		<textarea class="jmol-input">Write some commands here</textarea>
+        		<p><a href="#" class="jmol-send">Send a command to Jmol</a></p>
+        		<p><a href="index.html#examples">Back to index</a></p>
+        	</div>
+				</div>
+				<!-- // CONTENT -->
+			</div>
+		</div>
+		<!-- FOOTER -->
+		<div id="footer">
+    	<p>&copy;2012 Gusts 'gusC' Kaksis</p>
+		</div>
+		<!-- // FOOTER -->
+	</div>
+</body>
+</html>

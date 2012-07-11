@@ -1,0 +1,23 @@
+HEADER    INORGANICS Carbon dioxide CO2.pdb                    OCO     
+REMARK   1  CODE   2  CODE   3  CODE   4  CODE   5Brookhave6  Code     
+COMPND    O=C=O Carbona dioxide Linear 1 unit CO2.PDB                  
+AUTHOR    Riga Stradin University (c) Aris Kaksis 28-Nov-99            
+REMARK [CO2]                                                           
+ORIGX1      1.000000  0.000000  0.000000        0.00000
+ORIGX2      0.000000  1.000000  0.000000        0.00000
+ORIGX3      0.000000  0.000000  1.000000        0.00000
+SCALE1      0.100000  0.000000  0.000000        0.00000
+SCALE2      0.000000  0.100000  0.000000        0.00000
+SCALE3      0.000000  0.000000  0.100000        0.00000
+ATOM      1  C   CO2     1       0.208   0.552  -0.000  1.00  0.00
+ATOM      2  O   CO2     1       1.706   0.472  -0.000  1.00  0.00
+ATOM      3  O   CO2     1      -1.290   0.632  -0.000  1.00  0.00
+TER       4      CO2     1      
+CONECT    1    2                                                                
+CONECT    1    2                                                                
+CONECT    2    1                                                                
+CONECT    1    3                                                                
+CONECT    1    3                                                                
+CONECT    3    1                                                                
+MASTER        0    0    0    0    0    0    0    6    3    1    4    0
+END

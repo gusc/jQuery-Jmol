@@ -1,0 +1,98 @@
+* {
+	padding: 0;
+	margin : 0;
+}
+
+body {
+  background-color: #ffffff;
+  font: normal 12px Arial, sans-serif;
+  color: #000000;
+}
+
+/**
+* LAYOUT
+*/
+
+#wrap {
+  width: 970px;
+  margin: 0 auto;
+}
+#header {
+  position: relative;
+  height: 100px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+#content-wrap {
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+#content {
+  width: 970px;
+}
+#footer {
+	padding: 10px 30px;
+  height: 60px;
+  background-color: #efefef;
+  text-align: center;
+}
+
+/**
+* TEXT
+*/
+
+h1, h2, h3, h4, h5, h6, p, pre, ul, ol, dt, dd {
+	margin-bottom: 10px;
+}
+pre {
+	background-color: #efefef;
+	padding: 10px;
+}
+dd {
+	padding-left: 20px;
+}
+dt {
+	font-weight: bold;
+}
+dd em {
+	font-style: normal;;
+	color: #666;
+}
+dt em {
+	font-weight: normal;
+}
+ul, ol, dl {
+	margin-left: 20px;
+}
+li {
+	margin-bottom: 10px;
+}
+dl ul, dl ol {
+	list-style: none;
+}
+dl li {
+	margin-bottom: 0;
+}
+
+/**
+* Jmol
+*/
+
+.jmol-applet {
+	width: 400px;
+	height: 400px;
+	background-color: yellow;
+	float: left;
+	margin-right: 20px;
+}
+.jmol-log {
+	height: 120px;
+	width: 400px;
+	overflow: scroll;
+	background-color: #ccc;
+}
+.jmol-input {
+	display: block;
+	width: 400px;
+	height: 120px;
+}

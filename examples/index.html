@@ -1,0 +1,173 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+	<meta charset="utf-8">
+	<title>jMol - a jQuery plugin for Jmol</title>
+	<meta http-equiv="Content-Language" content="en" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="Lang" content="en">
+	<meta name="copyright" content="">
+	<meta name="author" content="">  
+	<meta name="description" content="">
+	<meta name="keywords" content="">
+	<link rel="stylesheet" type="text/css" href="assets/css/main.css" media="screen, projection">
+</head>
+<body>
+	<div id="holder">
+		<div id="wrap">
+			<!-- HEADER -->
+			<div id="header">
+				<h1>jMol - a jQuery plugin for <a href="http://jmol.sourceforge.net/">Jmol</a></h1>
+				<p>This plugin is intended to replace the old-school Jmol.js and add the ease of use of jQuery coding style. Also this plugin is inteded to work with W3C standards compatible tags (maybe breaking backwards compatibility with old-school browsers) and get rid of improper use of inline scripting.</p>
+			</div>
+			<!-- // HEADER -->
+			<div id="content-wrap">
+				<!-- CONTENT -->
+				<div id="content">
+					<h2 id="download">Download</h2>
+					<p>The project itself is hosted on GitHub. You can view it <a href="https://github.com/gusc/jMol">here</a>.</p>
+					<p>Current version is: 1.0.0 alpha</p>
+					<h2 id="installation">Installation</h2>
+					<pre>
+&lt;!DOCTYPE html&gt; 
+&lt;html lang="en"&gt;
+&lt;head&gt; 
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;jMol&lt;/title&gt;
+  &lt;script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"&gt;&lt;/script&gt;
+  &lt;script type="text/javascript" src="jquery.jmol.min.js"&gt;&lt;/script&gt;
+  &lt;script type="text/javascript" src="main.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="my-jmol-viewer"&gt;This content will be replaced with Jmol applet&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+					<h2 id="initialization">Initialization</h2>
+					<p>The contents of main.js:</p>
+					<pre>
+$(document).ready(function(){
+  $('#my-jmol-viewer').jmol({
+    appletUrl : '/jmol/',
+    width: 640,
+    height: 480,
+    menuUrl : '/jmol/jmol.mnu',
+    modelUrl : '/test.pdb',
+    background: '#FFFFFF',
+  });
+});
+</pre>
+					<h2 id="scripting">Sending script messages after initialization</h2>
+					<pre>
+// after initialization jmol method will route all the calls to the script method
+// of Jmol applet. All the commands are documented on http://chemapps.stolaf.edu/jmol/docs/
+$('#my-jmol-viewer').jmol('load /other_test.pdb'); 
+</pre>
+					<h2>Options</h2>
+					<dl id="options">
+						<dt>appletUrl</dt>
+						<dd>URL to the directory where Jmol applets reside <em>(default: empty)</em></dd>
+						<dt>appletFile</dt>
+						<dd>Jmol applets file name <em>(default: JmolApplet0.jar)</em></dd>
+						<dt>syncId</dt>
+						<dd>Jmol synchronization ID, if 0 specified new one will be generated <em>(default: 0)</em></dd>
+						<dt>memLimit</dt>
+						<dd>Java memory limit in megabytes <em>(default: 512)</em></dd>
+						<dt>width</dt>
+						<dd>Width of an applet window <em>(default: 400)</em></dd>
+						<dt>height</dt>
+						<dd>height of an applet window <em>(default: 300)</em></dd>
+						<dt>menuUrl</dt>
+						<dd>Jmol menu file URL <em>(default: 'jmol.mnu')</em></dd>
+						<dt>modelUrl</dt>
+						<dd>model file to load at startup <em>(default: empty)</em></dd>
+						<dt>background</dt>
+						<dd>background color of Jmol applet <em>(default: '#000000')</em></dd>
+					</dl>
+					<p>There are also callback options, where you specify your own callback function.</p>
+					<dl id="callbacks">
+						<dt>onReady(<em>uid</em>)</dt>
+						<dd><p>called when applet becomes ready. Arguments:</p>
+							<ul>
+								<li><strong>uid</strong> - unique ID</li>
+							</ul></dd>
+						<dt>onDestroy(<em>uid</em>)</dt>
+						<dd><p>called when applet has been destroyed. Arguments:</p>
+							<ul>
+								<li><strong>uid</strong> - unique ID</li>
+							</ul></dd>
+						<dt>onEcho(<em>msg</em>)</dt>
+						<dd><p>echo message callback. Arguments:</p>
+							<ul>
+								<li><strong>msg</strong> - string message</li>
+							</ul></dd>
+						<dt>onHover(<em>name, idx</em>)</dt>
+						<dd><p>called when a mouse hover an atom. Arguments:</p>
+							<ul>
+							  <li><strong>name</strong> - string name of an atom</li>
+							  <li><strong>idx</strong> - integer atom number</li>
+							</ul></dd>
+						<dt>onLoad(<em>url, file_name, name, err_msg, err_no, frame_prev, frame_last</em>)</dt>
+						<dd><p>called when a model file has been loaded. Arguments:</p>
+							<ul>
+							  <li><strong>url</strong> - URL of a model file</li>
+							  <li><strong>file_name</strong> - model file name without a directory path</li>
+							  <li><strong>name</strong> - internal name of a model</li>
+							  <li><strong>err_msg</strong> - string error message if any</li>
+							  <li><strong>err_no</strong> - error code if any</li>
+							  <li><strong>frame_prev</strong> - prior frame</li>
+							  <li><strong>frame_last</strong> - last frame</li>
+							</ul></dd>
+						<dt>onMeasure(<em>msg</em>)</dt>
+						<dd><p>called when a measurement has been made. Arguments:</p>
+							<ul>
+							  <li><strong>msg</strong> - string measurement messsage</li>
+							</ul></dd>
+						<dt>onPick(<em>atom</em>)</dt>
+						<dd><p>called when an atom has been clicked on. Arguments:</p>
+							<ul>
+							  <li><strong>atom</strong> - an atom object</li>
+							</ul>
+							<p>An atom object structure:</p><pre>
+{
+	id : atom id,
+	num : atom number
+	coords : {
+		x : x coordinate,
+		y : y coordinate,
+		z : z coordinate
+	}
+}						
+</pre></dd>
+						<dt>onScript(<em>msg</em>)</dt>
+						<dd><p>called when a script is being processed. Arguments:</p>
+							<ul>
+							  <li><strong>msg</strong> - string message (any message, error or an echo)</li>
+							</ul></dd>
+					</dl>
+        	<h2 id="examples">Examples</h2>
+        	<ul>
+        		<li><a href="init.html">Simple initialization</a></li>
+        		<li><a href="loader.html">Simple URL loader</a></li>
+        		<li><a href="ajax.html">AJAX loader</a></li>
+        		<li><a href="controlls.html">Controlls</a></li>
+        	</ul>
+        	<h2 id="roadmap">Roadmap</h2>
+        	<ul>
+        		<li>Testing and debugging;</li>
+        		<li>Build a CSS framework and a default theme so to replace the need for an old jmolButton, jmolCheckbox methods;</li>
+        		<li>Consequent API for onMeasure and onHover, similar to onPick - create a consistent internal use of atom object structure;</li>
+        		<li>Move some part of callbacks, like onLoad to event mechanism, as it creates posibility to bind and unbind (addEventListener and removeEventListener) when needed, callbacks stay ON the whole execution time.</li>
+        	</ul>
+				</div>
+				<!-- // CONTENT -->
+			</div>
+		</div>
+		<!-- FOOTER -->
+		<div id="footer">
+			<p>&copy;2012 Gusts 'gusC' Kaksis</p>
+		</div>
+		<!-- // FOOTER -->
+	</div>
+</body>
+</html>

@@ -5,12 +5,12 @@ function clear(){
 $(document).ready(function(){
 	$('.jmol-applet').jmol({
 		appletUrl : 'assets/java/jmol/',
-    width: 640,
-    height: 480,
-    modelUrl : 'data/ch4.pdb',
-    background: '#FFFFFF',
-    onEcho : function(msg){
-    	$('.jmol-log').append('<br />' + msg);
+		width: 640,
+		height: 480,
+		modelUrl : 'data/ch4.pdb',
+		background: '#FFFFFF',
+		onEcho : function(msg){
+			$('.jmol-log').append('<br />' + msg);
 		}
 	});
 	$('.jmol-input').bind('focus', clear)

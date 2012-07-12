@@ -5,13 +5,19 @@ function clear(){
 $(document).ready(function(){
 	$('.jmol-applet').jmol({
 		appletUrl : 'assets/java/jmol/',
-		width: 640,
-		height: 480,
+		width: 400,
+		height: 400,
 		modelUrl : 'data/ch4.pdb',
 		background: '#FFFFFF',
 		onEcho : function(msg){
 			$('.jmol-log').append('<br />' + msg);
 		}
+	});
+	$('.jmol-applet').bind('hover', function(e, atom){
+		$('.jmol-log').append('<br />Hovered over ' + atom.name + ' (' + atom.num + ')');
+	});
+	$('.jmol-applet').bind('pick', function(e, atom){
+		$('.jmol-log').append('<br />Picked ' + atom.name + ' (' + atom.num + ')');
 	});
 	$('.jmol-input').bind('focus', clear)
 	$('.jmol-send').click(function(e){

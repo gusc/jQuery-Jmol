@@ -61,43 +61,73 @@ Options
 
 There are also callback options, where you specify your own callback function.
 
-* **onReady**(uid) - called when applet becomes ready. Arguments:
- * **uid** - unique ID of applet
-* **onDestroy**(uid) - called when applet has been destroyed.Arguments:
- * **uid** - unique ID of applet
-* **onEcho**(msg) - echo message callback. Arguments:
+* **onEcho**(msg) - receives ECHO command output from Jmol applet. Arguments:
  * **msg** - string message
-* **onHover**(name, idx) -  called when a mouse hover an atom. Arguments: 
- * **name** - name of an atom as a string
- * **idx** - atom index
-* **onLoad**(url, file_name, name, err_msg, err_no, frame_prev, frame_last) - called when a model file has been loaded. Arguments:
- * **url** - URL of a model file
- * **file_name** - model file name without a directory path
- * **name** - internal name of a model
- * **err_msg** - error message if any
- * **err_no** - error code
- * **frame_prev** - prior frame
- * **frame_last** - last frame
-* **onMeasure**(msg) - called when a measurement has been made. Arguments: 
- * **msg** - measurement messsage as a string
-* **onMessage**(msg) - called when a message has been sent from an applet. Arguments:
- * **msg** - string message
-* **onPick**(atom) - called when an atom has been clicked on. Arguments:
- * **atom** - an object of atom data:
+* onScript(arguments) - receives script specific messages from Jmol applet. Arguments:
+ * **arguments** - an array of raw arguments received from Jmol
+* **onMessage**(arguments) - receives any type of messages (including echo or script, if their callbacks are not specified). Arguments:
+ * **arguments** - an array of raw arguments received from Jmol
+
+Events
+======
+
+* **ready** -  invoked when Jmol applet becomes ready. Handler arguments: 
+ * **event** - standard event object
+ * **uid** - unique internal ID of Jmol
+* **destroy** -  invoked when Jmol applet gets destroyed. Handler arguments: 
+ * **event** - standard event object
+ * **uid** - unique internal ID of Jmol
+* **hover** -  invoked when a mouse hovers an atom. Handler arguments: 
+ * **event** - standard event object
+ * **atom** - an atom object
 <pre>
-      id : atom id,
-      num : atom number
-      coords : {
-        x : x coordinate,
-        y : y coordinate,
-        z : z coordinate
-      }
+{
+	index : integer, zero based atom index in the model file,
+	name : string, name of an atom as defined in model file,
+	num : string, number of an atom as defined in model file,
+	coords : {
+		x : float, x coordinate,
+		y : float, y coordinate,
+		z : float, z coordinate
+	}
+}
 </pre>
-* onScript(msg) - called when a script is being processed. Arguments:
- * **msg** - string message
+* **pick** - invoked when a mouse picks (selects, clicks) an atom. Handler arguments:
+ * **event** - standard event object
+ * **atom** - an atom object
+* **load** - invoked when a model file has been loaded. Handler arguments:
+ * **event** - standard event object
+ * **info** - file loading info object
+<pre>
+{
+	url : string, URL of a file loaded,
+	file_name : string, file name without a directory path,
+	name : string, internal model name,
+	err_msg : string, error message, if any,
+	err_no : string, error number, if any,
+	frame_prev : string, frame number prior to loading the current model, in file.model form
+	frame_last : string, last frame number after loading the current model, in file.model form
+}						
+</pre>
+* **measure** - invoked when a measurement has been made. Handler arguments: 
+ * **event** - standard event object
+ * **measurement** - a measurement result object
+<pre>
+{
+	type : string, one of the following "distance", "angle", "torsion",
+	value : float, measurement value
+}						
+</pre>
 
 Changelog
 =========
+
+2012.07.12 1.1.0
+  Only messaging callbacks are available as callback options through jQuery. Hover, pick, load, ready and destroy are now sent as an event, so you can bind and unbind a listener. 
+  Also the plugin does not replace the placeholder, but instead use it as a base object, applet gets appended inside with an ID of placeholder preceding with underscore.
+
+2012.07.11 1.0.2 alpha
+  Timeout did not work, so I found that ready callback sent an extra parameter - internal Java object with all the public methods.
 
 2012.07.11 1.0.1 alpha
   Removed applet file name from jQuery options, now they are hard coded

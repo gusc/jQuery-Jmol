@@ -33,7 +33,7 @@
 &lt;html lang="en"&gt;
 &lt;head&gt; 
   &lt;meta charset="utf-8"&gt;
-  &lt;title&gt;jMol&lt;/title&gt;
+  &lt;title&gt;jMol Site&lt;/title&gt;
   &lt;script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"&gt;&lt;/script&gt;
   &lt;script type="text/javascript" src="jquery.jmol.min.js"&gt;&lt;/script&gt;
   &lt;script type="text/javascript" src="main.js"&gt;&lt;/script&gt;
@@ -86,78 +86,114 @@ $('#my-jmol-viewer').jmol('load /other_test.pdb');
 					</dl>
 					<p>There are also callback options, where you specify your own callback function.</p>
 					<dl id="callbacks">
-						<dt>onReady(<em>uid</em>)</dt>
-						<dd><p>called when applet becomes ready. Arguments:</p>
-							<ul>
-								<li><strong>uid</strong> - unique ID</li>
-							</ul></dd>
-						<dt>onDestroy(<em>uid</em>)</dt>
-						<dd><p>called when applet has been destroyed. Arguments:</p>
-							<ul>
-								<li><strong>uid</strong> - unique ID</li>
-							</ul></dd>
 						<dt>onEcho(<em>msg</em>)</dt>
-						<dd><p>echo message callback. Arguments:</p>
+						<dd><p>receives ECHO command output from Jmol applet. Arguments:</p>
 							<ul>
 								<li><strong>msg</strong> - string message</li>
 							</ul></dd>
-						<dt>onHover(<em>name, idx</em>)</dt>
-						<dd><p>called when a mouse hover an atom. Arguments:</p>
+						<dt>onScript(<em>arguments</em>)</dt>
+						<dd><p>receives script specific messages from Jmol applet. Arguments:</p>
 							<ul>
-							  <li><strong>name</strong> - string name of an atom</li>
-							  <li><strong>idx</strong> - integer atom number</li>
+							  <li><strong>arguments</strong> - an array of raw arguments received from Jmol</li>
 							</ul></dd>
-						<dt>onLoad(<em>url, file_name, name, err_msg, err_no, frame_prev, frame_last</em>)</dt>
-						<dd><p>called when a model file has been loaded. Arguments:</p>
+						<dt>onMessage(<em>arguments</em>)</dt>
+						<dd><p>receives any type of messages (including echo or script, if their callbacks are not specified). Arguments:</p>
 							<ul>
-							  <li><strong>url</strong> - URL of a model file</li>
-							  <li><strong>file_name</strong> - model file name without a directory path</li>
-							  <li><strong>name</strong> - internal name of a model</li>
-							  <li><strong>err_msg</strong> - string error message if any</li>
-							  <li><strong>err_no</strong> - error code if any</li>
-							  <li><strong>frame_prev</strong> - prior frame</li>
-							  <li><strong>frame_last</strong> - last frame</li>
+							  <li><strong>arguments</strong> - an array of raw arguments received from Jmol</li>
 							</ul></dd>
-						<dt>onMeasure(<em>msg</em>)</dt>
-						<dd><p>called when a measurement has been made. Arguments:</p>
+					</dl>
+					<h2 id="events">Events</h2>
+					<p>Starting from version 1.1.0 jMol sends events received through callbacks from Jmol.</p>
+					<dl>
+						<dt>ready</dt>
+						<dd><p>invoked when Jmol applet becomes ready. Handler arguments:</p>
 							<ul>
-							  <li><strong>msg</strong> - string measurement messsage</li>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>uid</strong> - unique internal ID of Jmol</li>
 							</ul></dd>
-						<dt>onPick(<em>atom</em>)</dt>
-						<dd><p>called when an atom has been clicked on. Arguments:</p>
+						<dt>destroy</dt>
+						<dd><p>invoked when Jmol applet gets destroyed. Handler arguments:</p>
 							<ul>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>uid</strong> - unique internal ID of Jmol</li>
+							</ul></dd>
+						<dt>hover</dt>
+						<dd><p>invoked when a mouse hovers an atom. Handler arguments:</p>
+							<ul>
+							  <li><strong>event</strong> - standard event object</li>
 							  <li><strong>atom</strong> - an atom object</li>
 							</ul>
 							<p>An atom object structure:</p><pre>
 {
-	id : atom id,
-	num : atom number
+	index : integer, zero based atom index in the model file,
+	name : string, name of an atom as defined in model file,
+	num : string, number of an atom as defined in model file,
 	coords : {
-		x : x coordinate,
-		y : y coordinate,
-		z : z coordinate
+		x : float, x coordinate,
+		y : float, y coordinate,
+		z : float, z coordinate
 	}
 }						
 </pre></dd>
-						<dt>onScript(<em>msg</em>)</dt>
-						<dd><p>called when a script is being processed. Arguments:</p>
+						<dt>pick</dt>
+						<dd><p>invoked when a mouse picks (selects, clicks) an atom. Handler arguments:</p>
 							<ul>
-							  <li><strong>msg</strong> - string message (any message, error or an echo)</li>
-							</ul></dd>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>atom</strong> - an atom object</li>
+							</ul></dd>	
+						<dt>load</dt>
+						<dd><p>invoked when a model file has been loaded. Handler arguments:</p>
+							<ul>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>info</strong> - file loading info object</li>
+							</ul>
+							<p>A file load info object structure:</p><pre>
+{
+	url : string, URL of a file loaded,
+	file_name : string, file name without a directory path,
+	name : string, internal model name,
+	err_msg : string, error message, if any,
+	err_no : string, error number, if any,
+	frame_prev : string, frame number prior to loading the current model, in file.model form
+	frame_last : string, last frame number after loading the current model, in file.model form
+}						
+</pre></dd>
+						<dt>measure</dt>
+						<dd><p>invoked when a measurement has been made. Handler arguments:</p>
+							<ul>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>measurement</strong> - a measurement result object</li>
+							</ul>
+							<p>A measurement object structure:</p><pre>
+{
+	type : string, one of the following "distance", "angle", "torsion",
+	value : float, measurement value
+}						
+</pre></dd>
 					</dl>
         	<h2 id="examples">Examples</h2>
         	<ul>
         		<li><a href="init.html">Simple initialization</a></li>
         		<li><a href="loader.html">Simple URL loader</a></li>
         		<li><a href="ajax.html">AJAX loader</a></li>
-        		<li><a href="controlls.html">Controlls</a></li>
+        		<li><a href="controlls.html">Controlls and Events</a></li>
         	</ul>
         	<h2 id="roadmap">Roadmap</h2>
         	<ul>
         		<li>Testing and debugging;</li>
         		<li>Build a CSS framework and a default theme so to replace the need for an old jmolButton, jmolCheckbox methods;</li>
-        		<li>Consequent API for onMeasure and onHover, similar to onPick - create a consistent internal use of atom object structure;</li>
-        		<li>Move some part of callbacks, like onLoad to event mechanism, as it creates posibility to bind and unbind (addEventListener and removeEventListener) when needed, callbacks stay ON the whole execution time.</li>
+        		<li>Parse measurement messages and add atom information to measurement object as well.</li>
+        	</ul>
+        	<h2 id="changelog">Changelog</h2>
+        	<dl>
+        		<dt><em>2012.07.12</em> 1.1.0</dt>
+        		<dd><p>Only messaging callbacks are available as callback options through jQuery. Hover, pick, load, ready and destroy are now sent as an event, so you can bind and unbind a listener. Also the plugin does not replace the placeholder, but instead use it as a base object, applet gets appended inside with an ID of placeholder preceding with underscore.</p></dd>
+        		<dt><em>2012.07.11</em> 1.0.2 alpha</dt>
+        		<dd><p>Timeout did not work, so I found that ready callback sent an extra parameter - internal Java object with all the public methods.</p></dd>
+        		<dt><em>2012.07.11</em> 1.0.1 alpha</dt>
+        		<dd><p>Removed applet file name from jQuery options, now they are hard coded Introduced useSigned:Boolean option, weather to load signed or unsigned applet Little more cheating on unresponsive Java applet - reset DOM tree and try to push scripts after setTimeout</p></dd>
+        		<dt><em>2012.07.10</em> 1.0.0 alpha</dt>
+        		<dd><p>Initial release</p></dd>
         	</ul>
 				</div>
 				<!-- // CONTENT -->

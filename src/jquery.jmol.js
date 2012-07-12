@@ -4,7 +4,7 @@
  * 
  * Copyright (c) 2012 Gusts 'gusC' Kaksis
  * 
- * Version: 1.0.2 alpha (11/07/2012)
+ * Version: 1.1.0 (12/07/2012)
  * Requires: jQuery v1.4+
  *
  * Licensed under the MIT license:
@@ -18,31 +18,87 @@
 */
 var JmolCallbackWrapper = (function($){
 	var _cbReady = function(id){
-		$('#' + id)._jmol_cb('ready', arguments);
-	},
-	_cbEcho = function(id){
-		$('#' + id)._jmol_cb('echo', arguments);
+		// Must go through, because of some house cleaning stuff
+		$('#' + id.substr(1))._jmol_cb('ready', arguments);
 	},
 	_cbHover = function(id){
-		$('#' + id)._jmol_cb('hover', arguments);
-	},
-	_cbLoad = function(id){
-		$('#' + id)._jmol_cb('load', arguments);
-	},
-	_cbMeasure = function(id){
-		$('#' + id)._jmol_cb('measure', arguments);
-	},
-	_cbMessage = function(id){
-		$('#' + id)._jmol_cb('message', arguments);
+		// Trigger directly
+		$('#' + id.substr(1)).triggerHandler('hover', _parseAtom(arguments[2], arguments[1]));
 	},
 	_cbPick = function(id){
-		$('#' + id)._jmol_cb('pick', arguments);
+		// Trigger directly
+		$('#' + id.substr(1)).triggerHandler('pick', _parseAtom(arguments[2], arguments[1]));
+	},
+	_cbLoad = function(id){
+		// Trigger directly
+		var info = {
+			url : arguments[1],
+			file_name : arguments[2],
+			name : arguments[3],
+			err_msg : arguments[4],
+			err_no : arguments[5],
+			frame_prev : arguments[6],
+			frame_last : arguments[7]
+		};
+		$('#' + id.substr(1)).triggerHandler('load', info);
+	},
+	_cbMeasure = function(id){
+		switch (arguments[3]){
+			case 'measurePicked':
+				var measurement = {
+					type : 'unknown',
+					value : arguments[4]
+				};
+				measurement['value'] = arguments[4];
+				if (arguments[2] == 2){
+					// Distance
+					measurement['type'] = 'distance'; 
+				} else if (arguments[2] == 3){
+					// Angle
+					measurement['type'] = 'angle';
+				} else if (arguments[2] == 4){
+					// Torsion
+					measurement['type'] = 'torsion';
+				}
+				$('#' + id.substr(1)).triggerHandler('measure', measurement);
+				break;
+		}
+	},
+	_cbEcho = function(id){
+		// Use callback options
+		$('#' + id.substr(1))._jmol_cb('echo', arguments);
+	},
+	_cbMessage = function(id){
+		// Use callback options
+		$('#' + id.substr(1))._jmol_cb('message', arguments);
 	},
 	_cbScript = function(id){
-		$('#' + id)._jmol_cb('script', arguments);
+		// Use callback options
+		$('#' + id.substr(1))._jmol_cb('script', arguments);
 	},
 	_cbSync = function(id){
-		return $('#' + id)._jmol_cb('sync', arguments);
+		// Use callback options
+		// TODO: implement a method in plugin - enable/disable sync
+		return $('#' + id.substr(1))._jmol_cb('sync', arguments);
+	},
+	/**
+	* Parse atom string
+	* @param integer - index from Jmol
+	* @param string - string from Jmol
+	* @return object - atom object structure
+	*/
+	_parseAtom = function(idx, str){
+		var a = str.split(' ');
+		return {
+			index : parseInt(idx),
+			name : a[0],
+			num : a[1],
+			coords : {
+				x : parseFloat(a[2]),
+				y : parseFloat(a[3]),
+				z : parseFloat(a[4])
+			}
+		};
 	};
 	
 	return {
@@ -79,16 +135,10 @@ var JmolCallbackWrapper = (function($){
 			background: '#000000',
 			
 			// Jmol callback events
-			onReady: function (uid) {},
-			onDestroy: function (uid) {},
-			onEcho: function (msg) {},
-			onHover: function (name, idx) {},
-			onLoad: function (url, file_name, name, err_msg, err_no, frame_prev, frame_last) {},
-			onMeasure: function (msg) {},
-			onMessage: function (msg) {},
-			onPick: function (atom) {},
-			onScript: function (msg) {},
-			onSync: function (msg) { return 1; },
+			onEcho: null, // param: msg
+			onMessage: null, // param: args
+			onScript: null, // param: args
+			onSync: function () { return 1; },
 		},
 		/**
 		* Unsigned applet file
@@ -101,7 +151,7 @@ var JmolCallbackWrapper = (function($){
 		/**
 		* HTML template for Jmol applet
 		*/
-		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" class="jmol-initialized%class%" width="%width%" height="%height%"%add_attr%>'
+		_htmlTemplate = '<object type="application/x-java-applet" id="%id%" name="%name%" width="%width%" height="%height%"%add_attr%>'
 			+ '<param name="syncId" value="%sync_id%"/>'
 			+ '<param name="progressbar" value="true">'
 			+ '<param name="progresscolor" value="blue">'
@@ -118,19 +168,23 @@ var JmolCallbackWrapper = (function($){
 			+ '%add_param%'
 
 			+ '<param name="appletReadyCallback" value="JmolCallbackWrapper.cbReady" />'
-			+ '<param name="echoCallback" value="JmolCallbackWrapper.cbEcho" />'
 			+ '<param name="hoverCallback" value="JmolCallbackWrapper.cbHover" />'
 			+ '<param name="loadStructCallback" value="JmolCallbackWrapper.cbLoad" />'
-			+ '<param name="measureCallback" value="JmolCallbackWrapper.cbMeasure" />'
-			+ '<param name="messageCallback" value="JmolCallbackWrapper.cbMessage" />'
 			+ '<param name="pickCallback" value="JmolCallbackWrapper.cbPick" />'
-			+ '<param name="scriptCallback" value="JmolCallbackWrapper.cbScript" />'
+			+ '<param name="measureCallback" value="JmolCallbackWrapper.cbMeasure" />'
 			+ '<param name="syncCallback" value="JmolCallbackWrapper.cbSync" />'
 
 			+ '<p>You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br>'
 			+ 'Check the warning message from your browser and/or enable Java applets in<br>'
 			+ 'your web browser preferences, or install the Java Runtime Environment from <a href="http://www.java.com">www.java.com</a><br></p>'
 			+ '</object>',
+		/**
+		* We set thease callbacks only if options are set
+		* so we don't bring unnecessary load to JavaScript
+		*/
+		_msgCbTmp = '<param name="messageCallback" value="JmolCallbackWrapper.cbMessage" />',
+		_echoCbTmp = '<param name="echoCallback" value="JmolCallbackWrapper.cbEcho" />',
+		_scriptCbTmp = '<param name="scriptCallback" value="JmolCallbackWrapper.cbScript" />',
 		/**
 		* Java applet Class ID
 		*/
@@ -191,22 +245,15 @@ var JmolCallbackWrapper = (function($){
 					var cls = $item.attr('class');
 					if (typeof id == 'undefined'){
 						// We need an unique ID, so here we generate it if there is none
-						id = 'jmolApplet' + _appletCounter;
-					}
-					if (typeof cls == 'undefined'){
-						cls = '';
-					} else {
-						cls = ' ' + cls;
+						id = 'jmolApplet' + _appletCounter
+						$item.attr('id', id);
 					}
 					if (options['syncId'] <= 0){
 						options['syncId'] = _appletCounter;
 					}
-					$applet = $(_appletBuildHtml(id, cls, options));
-					$item.after($applet);
-					$item.remove();
-					$item = $applet;
+					$item.html(_appletBuildHtml('_' + id, options));
 					_optionsCache[id] = options;
-					$applet = null;
+					$item.addClass('jmol-initialized')
 				} else {
 					// Well ther's your problem, sir
 					_debug('Error in initializing jMol');
@@ -223,51 +270,32 @@ var JmolCallbackWrapper = (function($){
 		* @return integer - only for SyncCallback
 		*/
 		_callback = function(name, args){
-			var options = _optionsCache[args[0]];
+			var id = $(this).attr('id');
+			var options = _optionsCache[id];
 			switch (name){
 				case 'ready':
 					if (args[2]){
 						// Funny thing about Jmol Java applet :)
 						// Hacking is the way to the victory
-						console.log(args[3]);
-						_applets[args[0]] = args[3];
-						options.onReady(args[1]);
+						_applets[id] = args[3];
+						this.triggerHandler('ready', args[1])
 					} else {
-						_applets[args[0]] = null;
-						options.onDestroy(args[1]);
+						delete _applets[id];
+						delete _optionsCache[id];
+						this.triggerHandler('destroy', args[1])
 					}
 					break;
 				case 'echo':
 					options.onEcho(args[1]);
 					break;
-				case 'hover':
-					options.onHover(args[1], args[2]);
-					break;
-				case 'load':
-					options.onLoad(args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
-					break;
-				case 'measure':
-					options.onMeasure(args[1]);
-					break;
 				case 'message':
-					options.onMessage(args[1]);
-					break;
-				case 'pick':
-					var a = args[1].split(' ');
-					var atom = {
-						id : a[0],
-						num : a[1],
-						coords : {
-							x : parseFloat(a[2]),
-							y : parseFloat(a[3]),
-							z : parseFloat(a[4])
-						}
-					};
-					options.onPick(atom);
+					options.onMessage(args);
 					break;
 				case 'script':
-					options.onScript(args[1]);
+					options.onScript(args);
 					break;
+				case 'sync':
+					return options.onSync();
 			}
 		},
 		/**
@@ -317,7 +345,7 @@ var JmolCallbackWrapper = (function($){
 		* @param object - jquery plugin options
 		* @return string - applets HTML code
 		*/
-		_appletBuildHtml = function(id, cls, options){
+		_appletBuildHtml = function(id, options){
 			var add_attr = '';
 			if (navigator.userAgent){
 				if (navigator.userAgent.indexOf('MSIE') != -1){
@@ -333,6 +361,15 @@ var JmolCallbackWrapper = (function($){
 					add_param = '<param name="UseCommandThread" value="true">'; 
 				}
 			}
+			if (options['onEcho'] !== null){
+				add_param += _echoCbTmp;
+			}
+			if (options['onScript'] !== null){
+				add_param += _scriptCbTmp;
+			}
+			if (options['onMessage'] !== null){
+				add_param += _msgCbTmp;
+			}
 			var script = '';
 			if (options['menuUrl'].length > 0){
 				script += 'load MENU ' + options['menuUrl'] + ';';
@@ -340,12 +377,12 @@ var JmolCallbackWrapper = (function($){
 			if (options['modelUrl'].length > 0){
 				script += 'load ' + options['modelUrl'] + ';';
 			}
+			
 			var html = _htmlTemplate.replace('%add_attr%', add_attr);
 			html = html.replace('%add_param%', add_param);
 			html = html.replace('%sync_id%', options['syncId']);
 			html = html.replace('%id%', id);
 			html = html.replace('%name%', id);
-			html = html.replace('%class%', cls);
 			html = html.replace('%width%', options['width']);
 			html = html.replace('%height%', options['height']);
 			html = html.replace('%applet_url%', options['appletUrl']);

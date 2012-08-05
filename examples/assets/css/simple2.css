@@ -1,0 +1,35 @@
+ul.buttons {
+	list-style:none;
+}
+ul.button li {
+	margin-bottom: 5px;
+}
+.buttons a {
+	display: inline-block;
+	background-color: buttonFace;
+	border-color: buttonHighlight buttonShadow buttonShadow buttonHighlight;
+	border-width: 1px;
+	border-style: solid;
+	height: 20px;
+	line-height: 20px;	
+	width: 140px;
+	padding: 0 10px;
+	text-decoration: none;
+	color: black;
+	margin-right: 5px;
+}
+p.buttons a {
+	float: left;
+	width: auto;
+}
+p.buttons {
+	clear: both;
+	overflow: hidden;
+}
+ul.small span {
+	display: inline-block;
+	width: 200px;
+}
+ul.small a {
+	width: 30px;
+}

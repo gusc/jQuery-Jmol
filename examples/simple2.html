@@ -1,0 +1,82 @@
+<!DOCTYPE html> 
+<html lang="lv"> 
+<head> 
+	<meta charset="utf-8">
+	<title>jMol jQuery + Chem Doodle</title>
+	<meta http-equiv="Content-Language" content="lv" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="Lang" content="lv">
+	<meta name="copyright" content="">
+	<meta name="author" content="">  
+	<meta name="description" content="">
+	<meta name="keywords" content="">
+	<link rel="stylesheet" type="text/css" href="assets/css/main.css" media="screen, projection">
+	<link rel="stylesheet" type="text/css" href="assets/css/simple2.css" media="screen, projection">
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"></script>
+	<script type="text/javascript" src="assets/js/jquery.jmol.min.js"></script>
+	<script type="text/javascript" src="assets/js/jquery.iecors.js"></script>
+	<script type="text/javascript" src="assets/js/jmol.js"></script>
+	<script type="text/javascript" src="assets/js/simple2.js"></script>
+</head>
+<body>
+	<div id="holder">
+		<div id="wrap">
+			<!-- HEADER -->
+			<div id="header">
+				<h1>jMol - a jQuery plugin for <a href="http://jmol.sourceforge.net/">Jmol</a></h1>
+				<p>This plugin is intended to replace the old-school Jmol.js and add the ease of use of jQuery coding style. Also this plugin is inteded to work with W3C standards compatible tags (maybe breaking backwards compatibility with old-school browsers) and get rid of improper use of inline scripting.</p>
+			</div>
+			<!-- // HEADER -->
+			<div id="content-wrap">
+				<!-- CONTENT -->
+				<div id="content">
+					<div class="row">
+        		<div id="jmol"><p>You are viewing this page with a JavaScript disabled browser. Please enable JavaScript to view Jmol.</p></div>
+        		<div class="description">
+        			<p>This is a recreation of <a href="http://chemapps.stolaf.edu/jmol/docs/examples-12/simple2.htm">simple2.html</a> from Jmol 12 example page</p>
+        			<ul class="buttons">
+        				<li><a href="#" class="jmol-prompt" title="Enter the name of a compound to see its electrostatic potential map" data-database="pubchem" data-script-after="isosurface s1 vdw map MEP translucent">Load MOL + MEP</a></li>
+        				<li><a href="#" class="jmol-prompt" title="Enter the name of a compound" data-database="pubchem">Load MOL (PubChem)</a></li>
+        				<li><a href="#" class="jmol-prompt" title="Enter the name or identifier (SMILES, InChI, CAS) of a molecule" data-database="nci3d">Load MOL (NCI)</a></li>
+        				<li><a href="#" class="jmol-script" data-script="minimize">Minimize (MMFF94)</a></li>
+        				<li><a href="#" class="jmol-prompt" title="Enter a fully qualified URL" data-database="file">Load URL</a></li>
+        				<li><a href="#" class="jmol-script" data-script="load ? ">Load FILE</a></li>
+        				<li><a href="#" class="jmol-script" data-script="script ?.spt">Load SCRIPT</a></li>
+        				<li><a href="#" class="jmol-script" data-script="select *;if ($s1) {isosurface s1 delete} else {calculate partialcharge;isosurface s1 vdw map MEP translucent}">Show/Hide MEP</a></li>
+        			</ul>
+        			<ul class="buttons">
+        				<li><a href="#" class="jmol-script" data-script="write FILE ?">Save FILE</a></li>
+        				<li><a href="#" class="jmol-script" data-script="write STATE ?.spt">Save STATE</a></li>
+        				<li><a href="#" class="jmol-script" data-script="write IMAGE ?.jpg">Save JPG</a></li>
+        				<li><a href="#" class="jmol-script" data-script="write PNG ?.png">Save PNG</a></li>
+        			</ul>
+        			<p><a href="index.html#examples">Back to index</a></p>
+        		</div>
+        	</div>
+        	<div class="row">
+        		<ul class="buttons small">
+        			<li><span>Drag-Minimize:</span> <a href="#" class="jmol-script" data-script="set picking dragMinimize">On</a> <a href="#" class="jmol-script" data-script="set picking ident">Off</a></li>
+        			<li><span>Model Kit Mode:</span> <a href="#" class="jmol-script" data-script="set modelkitmode">On</a> <a href="#" class="jmol-script" data-script="set modelkitmode off">Off</a></li>
+        			<li><span>Display calculated MMFF94 energy:</span> <a href="#" class="jmol-script" data-script="set minimizationSteps 200;set loadstructcallback 'minimize energy';set minimizationcallback '';set echo top left;echo @{'' + _minimizationEnergy + ' kJ/mol'};minimize energy">On</a> <a href="#" class="jmol-script" data-script="echo '';set minimizationCallback '';set loadstructcallback ''">Off</a></li>
+        		</ul>
+        		<p class="buttons">
+        			<a href="#" class="jmol-script" data-script="spacefill ONLY">View as spacefill</a>
+        			<a href="#" class="jmol-script" data-script="wireframe ONLY">View as wireframe</a>
+        			<a href="#" class="jmol-script" data-script="wireframe ONLY;wireframe RESET;spacefill RESET">View as balls&amp;sticks</a>
+        		</p>
+        		<textarea class="jmol-input">Write some commands here</textarea>
+        		<p class="buttons"><a href="#" class="jmol-send">Send a command to Jmol</a> <a href="#" class="jmol-console">Open Jmol console</a></p>
+        		<p class="jmol-log">This is a log view for echo commands</p>
+        	</div>
+				</div>
+				<!-- // CONTENT -->
+			</div>
+		</div>
+		<!-- FOOTER -->
+		<div id="footer">
+    	<p>&copy;2012 Gusts 'gusC' Kaksis</p>
+		</div>
+		<!-- // FOOTER -->
+	</div>
+</body>
+</html>

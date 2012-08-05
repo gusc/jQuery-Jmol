@@ -1,5 +1,6 @@
 $(document).ready(function(){
-	$('.jmol-applet').jmol({
+	// Initialize Jmol
+	var jmol = new Jmol('#jmol', {
 		appletUrl : 'assets/java/jmol/',
 		width: 400,
 		height: 400,

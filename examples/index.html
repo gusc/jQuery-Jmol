@@ -25,8 +25,8 @@
 				<!-- CONTENT -->
 				<div id="content">
 					<h2 id="download">Download</h2>
-					<p>The project itself is hosted on GitHub. You can view it <a href="https://github.com/gusc/jMol">here</a>.</p>
-					<p>Current version is: 1.0.0 alpha</p>
+					<p>The project itself is hosted on GitHub. You can view it <a href="https://github.com/gusc/jQuery-Jmol/">here</a>.</p>
+					<p>Current version is: 1.3.0</p>
 					<h2 id="installation">Installation</h2>
 					<pre>
 &lt;!DOCTYPE html&gt; 
@@ -57,32 +57,28 @@ $(document).ready(function(){
   });
 });
 </pre>
-					<h2 id="scripting">Sending script messages after initialization</h2>
-					<pre>
-// after initialization jmol method will route all the calls to the script method
-// of Jmol applet. All the commands are documented on http://chemapps.stolaf.edu/jmol/docs/
-$('#my-jmol-viewer').jmol('load /other_test.pdb'); 
-</pre>
-					<h2>Options</h2>
+					<h2>Initialization options</h2>
 					<dl id="options">
 						<dt>appletUrl</dt>
 						<dd>URL to the directory where Jmol applets reside <em>(default: empty)</em></dd>
-						<dt>useSigned</dt>
-						<dd>Weather to load a signed or unsigned applet <em>(default: false)</em></dd>
-						<dt>syncId</dt>
-						<dd>Jmol synchronization ID, if 0 specified new one will be generated <em>(default: 0)</em></dd>
-						<dt>memLimit</dt>
-						<dd>Java memory limit in megabytes <em>(default: 512)</em></dd>
-						<dt>width</dt>
-						<dd>Width of an applet window <em>(default: 400)</em></dd>
+						<dt>background</dt>
+						<dd>background color of Jmol applet <em>(default: '#000000')</em></dd>
+						<dt>events</dt>                                                                              
+						<dd>an array of event names that should be prepared for listeners. See <a href="#events">events section</a>.</dd>
 						<dt>height</dt>
 						<dd>height of an applet window <em>(default: 300)</em></dd>
+						<dt>memLimit</dt>
+						<dd>Java memory limit in megabytes <em>(default: 512)</em></dd>
 						<dt>menuUrl</dt>
 						<dd>Jmol menu file URL <em>(default: 'jmol.mnu')</em></dd>
 						<dt>modelUrl</dt>
 						<dd>model file to load at startup <em>(default: empty)</em></dd>
-						<dt>background</dt>
-						<dd>background color of Jmol applet <em>(default: '#000000')</em></dd>
+						<dt>width</dt>
+						<dd>Width of an applet window <em>(default: 400)</em></dd>
+						<dt>syncId</dt>
+						<dd>Jmol synchronization ID, if 0 specified new one will be generated <em>(default: 0)</em></dd>
+						<dt>useSigned</dt>
+						<dd>Weather to load a signed or unsigned applet <em>(default: false)</em></dd>
 					</dl>
 					<p>There are also callback options, where you specify your own callback function.</p>
 					<dl id="callbacks">
@@ -91,85 +87,96 @@ $('#my-jmol-viewer').jmol('load /other_test.pdb');
 							<ul>
 								<li><strong>msg</strong> - string message</li>
 							</ul></dd>
-						<dt>onScript(<em>arguments</em>)</dt>
-						<dd><p>receives script specific messages from Jmol applet. Arguments:</p>
+						<dt>onMessage(<em>arguments</em>)</dt>
+						<dd><p>receives any type of messages (including echo or script, if their callbacks are not specified). Arguments:</p>
 							<ul>
 							  <li><strong>arguments</strong> - an array of raw arguments received from Jmol</li>
 							</ul></dd>
-						<dt>onMessage(<em>arguments</em>)</dt>
-						<dd><p>receives any type of messages (including echo or script, if their callbacks are not specified). Arguments:</p>
+						<dt>onScript(<em>arguments</em>)</dt>
+						<dd><p>receives script specific messages from Jmol applet. Arguments:</p>
 							<ul>
 							  <li><strong>arguments</strong> - an array of raw arguments received from Jmol</li>
 							</ul></dd>
 					</dl>
 					<h2 id="events">Events</h2>
 					<p>Starting from version 1.1.0 jMol sends events received through callbacks from Jmol.</p>
+					<p>For argument values see: <a href="http://jmol.sourceforge.net/jslibrary/#jmolSetCallback">the old Jmol.js documentation</a></p>
 					<dl>
-						<dt>ready</dt>
-						<dd><p>invoked when Jmol applet becomes ready. Handler arguments:</p>
+					  <dt>animate</dt>
+						<dd><p>invoked when Jmol applet does animation. Handler arguments:</p>
 							<ul>
 								<li><strong>event</strong> - standard event object</li>
-							  <li><strong>uid</strong> - unique internal ID of Jmol</li>
+							  <li><strong>arguments</strong> - an array of arguments</li>
 							</ul></dd>
 						<dt>destroy</dt>
 						<dd><p>invoked when Jmol applet gets destroyed. Handler arguments:</p>
 							<ul>
 								<li><strong>event</strong> - standard event object</li>
-							  <li><strong>uid</strong> - unique internal ID of Jmol</li>
+							  <li><strong>arguments</strong> - an array of arguments</li>
 							</ul></dd>
 						<dt>hover</dt>
 						<dd><p>invoked when a mouse hovers an atom. Handler arguments:</p>
 							<ul>
 							  <li><strong>event</strong> - standard event object</li>
-							  <li><strong>atom</strong> - an atom object</li>
-							</ul>
-							<p>An atom object structure:</p><pre>
-{
-	index : integer, zero based atom index in the model file,
-	name : string, name of an atom as defined in model file,
-	num : string, number of an atom as defined in model file,
-	coords : {
-		x : float, x coordinate,
-		y : float, y coordinate,
-		z : float, z coordinate
-	}
-}						
-</pre></dd>
-						<dt>pick</dt>
-						<dd><p>invoked when a mouse picks (selects, clicks) an atom. Handler arguments:</p>
-							<ul>
-								<li><strong>event</strong> - standard event object</li>
-							  <li><strong>atom</strong> - an atom object</li>
-							</ul></dd>	
+							  <li><strong>arguments</strong> - an array of arguments</li>
+							</ul></dd>
 						<dt>load</dt>
 						<dd><p>invoked when a model file has been loaded. Handler arguments:</p>
 							<ul>
 								<li><strong>event</strong> - standard event object</li>
-							  <li><strong>info</strong> - file loading info object</li>
-							</ul>
-							<p>A file load info object structure:</p><pre>
-{
-	url : string, URL of a file loaded,
-	file_name : string, file name without a directory path,
-	name : string, internal model name,
-	err_msg : string, error message, if any,
-	err_no : string, error number, if any,
-	frame_prev : string, frame number prior to loading the current model, in file.model form
-	frame_last : string, last frame number after loading the current model, in file.model form
-}						
-</pre></dd>
+							  <li><strong>arguments</strong> - an array of arguments</li>
+							</ul></dd>
 						<dt>measure</dt>
 						<dd><p>invoked when a measurement has been made. Handler arguments:</p>
 							<ul>
 								<li><strong>event</strong> - standard event object</li>
-							  <li><strong>measurement</strong> - a measurement result object</li>
-							</ul>
-							<p>A measurement object structure:</p><pre>
-{
-	type : string, one of the following "distance", "angle", "torsion",
-	value : float, measurement value
-}						
-</pre></dd>
+							  <li><strong>arguments</strong> - an array of arguments</li>
+							</ul></dd>
+						<dt>minimize</dt>
+						<dd><p>invoked when Jmol applet does minimization. Handler arguments:</p>
+							<ul>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>arguments</strong> - an array of arguments</li>
+							</ul></dd>
+						<dt>pick</dt>
+						<dd><p>invoked when a mouse picks (selects, clicks) an atom. Handler arguments:</p>
+							<ul>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>arguments</strong> - an array of arguments</li>
+							</ul></dd>
+						<dt>ready</dt>
+						<dd><p>invoked when Jmol applet becomes ready. Handler arguments:</p>
+							<ul>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>arguments</strong> - an array of arguments</li>
+							</ul></dd>
+						<dt>resize</dt>
+						<dd><p>invoked when a Jmol applet's size changes. Handler arguments:</p>
+							<ul>
+								<li><strong>event</strong> - standard event object</li>
+							  <li><strong>arguments</strong> - an array of arguments</li>
+							</ul></dd>
+					</dl>
+					<h2 id="scripting">Sending script messages after initialization</h2>
+					<pre>
+// after initialization jmolscript method will route all the calls to the script method
+// of Jmol applet. All the commands are documented on http://chemapps.stolaf.edu/jmol/docs/
+$('#my-jmol-viewer').jmolscript('load /other_test.pdb'); 
+</pre>
+					<h2 id="commands">jQuery commands for initialized plugin</h2>
+					<pre>
+// after initialization jmol method will accept option object or 3 internal commands: hide, show, destroy
+$('#my-jmol-viewer').jmol('hide'); 
+// It is highly advised to use jmol('hide') and jmol('show') instead of jQuery's own hide() and show methods, 
+// because Java does not like display:none state in Internet Explorer.
+</pre>
+					<dl>
+						<dt>hide</dt>
+						<dd>Hide Jmol applet from the view</dd>
+						<dt>show</dt>
+						<dd>Show Jmol applet</dd>
+						<dt>destroy</dt>
+						<dd>Destroy Jmol applet</dd>
 					</dl>
         	<h2 id="examples">Examples</h2>
         	<ul>
@@ -177,15 +184,20 @@ $('#my-jmol-viewer').jmol('load /other_test.pdb');
         		<li><a href="loader.html">Simple URL loader</a></li>
         		<li><a href="ajax.html">AJAX loader</a></li>
         		<li><a href="controlls.html">Controlls and Events</a></li>
+        		<li><a href="simple2.html">Rewrite of simple2.html example from Jmol test site</a></li>
         	</ul>
         	<h2 id="roadmap">Roadmap</h2>
         	<ul>
         		<li>Testing and debugging;</li>
         		<li>Build a CSS framework and a default theme so to replace the need for an old jmolButton, jmolCheckbox methods;</li>
-        		<li>Parse measurement messages and add atom information to measurement object as well.</li>
+        		<li>Create additional helper library to parse measurement messages and add atom information to measurement object as well. Also parse hover, pick and other string messages to form an object representation.</li>
         	</ul>
         	<h2 id="changelog">Changelog</h2>
         	<dl>
+        		<dt><em>2012.08.05</em> 1.3.0</dt>
+        		<dd><p>Separate jQuery call .jmolscript() for Jmol scripting. .jmol() now takes 3 different string options for initialized plugin: hide (hide applet), show (show applet), destroy (destroy applet and plugin instance)</p></dd>
+        		<dt><em>2012.07.18</em> 1.2.0 (not released)</dt>
+        		<dd><p>Removed data mangling from measurement, hovering and picking callbacks - raw string data will be passed to user. Introduced Jmol.js (version 3.0) scripting library to aid development.</p></dd>
         		<dt><em>2012.07.12</em> 1.1.0</dt>
         		<dd><p>Only messaging callbacks are available as callback options through jQuery. Hover, pick, load, ready and destroy are now sent as an event, so you can bind and unbind a listener. Also the plugin does not replace the placeholder, but instead use it as a base object, applet gets appended inside with an ID of placeholder preceding with underscore.</p></dd>
         		<dt><em>2012.07.11</em> 1.0.2 alpha</dt>

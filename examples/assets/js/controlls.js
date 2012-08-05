@@ -1,31 +1,36 @@
+// Clear text area on focus
 function clear(){
 	$(this).text('');
 	$(this).unbind('focus', clear);
 }
 $(document).ready(function(){
-	$('.jmol-applet').jmol({
+	// Initialize Jmol
+	var jmol = new Jmol('#jmol', {
 		appletUrl : 'assets/java/jmol/',
 		width: 400,
 		height: 400,
 		modelUrl : 'data/ch4.pdb',
 		background: '#FFFFFF',
+		events : ['hover', 'pick'],
 		onEcho : function(msg){
 			$('.jmol-log').append('<br />' + msg);
 		}
 	});
-	$('.jmol-applet').bind('hover', function(e, atom){
-		$('.jmol-log').append('<br />Hovered over ' + atom.name + ' (' + atom.num + ')');
+	// Bind a listener for hover event
+	jmol.addEventListener('hover', function(e, arguments){
+		$('.jmol-log').append('<br />' + arguments[1]);
 	});
-	$('.jmol-applet').bind('pick', function(e, atom){
-		$('.jmol-log').append('<br />Picked ' + atom.name + ' (' + atom.num + ')');
+	// Bind a listener for pick event
+	jmol.addEventListener('pick', function(e, arguments){
+		$('.jmol-log').append('<br />' + arguments[1]);
 	});
-	$('.jmol-input').bind('focus', clear)
-	$('.jmol-send').click(function(e){
-		e.preventDefault();
-		$('.jmol-applet').jmol($('.jmol-input').val());
+	// Create a callback script element
+	jmol.addCallbackScript('.jmol-send', function(){
+		return $('.jmol-input').val();
 	});
-	$('.jmol-controll').click(function(e){
-		e.preventDefault();
-		$('.jmol-applet').jmol($(this).data('script'));
-	});
+	// Create a data script element
+	jmol.addDataScript('.jmol-controll');
+	
+	// Bind a clear function to textarea
+	$('.jmol-input').bind('focus', clear);
 });

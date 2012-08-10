@@ -4,104 +4,175 @@
  * 
  * Copyright (c) 2012 Gusts 'gusC' Kaksis
  * 
- * Version: 1.3.0 (05/08/2012)
- * Requires: jQuery v1.4+
+ * Version: 2.0.0 (10/08/2012)
+ * Requires: jQuery v1.6+
  *
  * Licensed under the MIT license:
  *   http://www.opensource.org/licenses/mit-license.php
  */
-
-/**
-* We need this private static class to overcome shortage with 
-* "functionName"-as-a-string passed to Java Applet
-* This class will route callbacks back to the original callback functions or
-* event handlers
-*/
-var _jQueryJmolRouter = (function($){
-	var _cbEval = function(id){
-		// Use callback options
-		$('#' + id.substr(1))._jmol_cb('eval', arguments);
-	},
-	_cbMessage = function(id){
-		// Use callback options
-		$('#' + id.substr(1))._jmol_cb('message', arguments);
-	},
-	_cbEcho = function(id){
-		// Use callback options
-		$('#' + id.substr(1))._jmol_cb('echo', arguments);
-	},
-	_cbScript = function(id){
-		// Use callback options
-		$('#' + id.substr(1))._jmol_cb('script', arguments);
-	},
-	_cbSync = function(id){
-		// Use callback options
-		// TODO: implement a method in plugin - enable/disable sync
-		return $('#' + id.substr(1))._jmol_cb('sync', arguments);
-	},
-	_cbReady = function(id){
-		// Must go through, because of some house cleaning stuff
-		$('#' + id.substr(1))._jmol_cb('ready', arguments);
-	},
-	_cbLoad = function(id){
-		// Trigger directly
-		$('#' + id.substr(1)).triggerHandler('load', arguments);
-	},
-	_cbHover = function(id){
-		// Trigger directly
-		$('#' + id.substr(1)).triggerHandler('hover', arguments);
-	},
-	_cbPick = function(id){
-		// Trigger directly
-		$('#' + id.substr(1)).triggerHandler('pick', arguments);
-	},
-	_cbMeasure = function(id){
-		// Trigger directly
-		$('#' + id.substr(1)).triggerHandler('measure', arguments);
-	},
-	_cbAnim = function(id){
-		// Trigger directly
-		$('#' + id.substr(1)).triggerHandler('animate', arguments);
-	},
-	_cbMin = function(id){
-		// Trigger directly
-		$('#' + id.substr(1)).triggerHandler('minimize', arguments);
-	},
-	_cbResize = function(id){
-		// Trigger directly
-		$('#' + id.substr(1)).triggerHandler('resize', arguments);
-	};
-	
-	return {
-		// Only callbacks as param
-		cbEval : _cbEval,
-		// Only callbacks
-		cbMessage : _cbMessage,
-		cbEcho : _cbEcho,
-		cbScript : _cbScript,
-		cbSync : _cbSync,
-		// Only events as param
-		cbReady : _cbReady,
-		// Only events
-		cbLoad : _cbLoad,
-		cbHover : _cbHover,
-		cbPick : _cbPick,
-		cbMeasure : _cbMeasure,
-		cbAnim : _cbAnim,
-		cbMin : _cbMin,
-		cbResize : _cbResize
-	};
-})(jQuery);
-
-/**
-* This is the real-deal - a jQueryJmol jquery plugin
-*/
+ 
 (function($){
-	var jQueryJmolPlugin = (function(){
+	/*
+	* Jmol Java applet's wrapper class
+	* Used to expose external interface methods to JavaScript, when applet becomes ready
+	*/
+	var JmolWrapper = function(id, options){
+		this.id = id;
+		this.options = options;
+		this._applet = null;
+		this._callbackCounter = {};
+		this._callbackNames = {
+			animate : 'AnimFrameCallback',
+			echo : 'EchoCallback',
+			hover : 'HoverCallback',
+			load : 'LoadStructCallback',
+			measure : 'MeasureCallback',
+			message : 'MessageCallback',
+			minimize : 'MinimizationCallback',
+			pick : 'PickCallback',
+			resize : 'ResizeCallback',
+			sync : 'SyncCallback', // callback not event!
+			script : 'ScriptCallback'
+		};
+		this._scriptCache = [];
+		
+		// Wrapped methods
+		
 		/**
-		* Just a reminder what is considered an event, everything else is a callback
+		* Get a property from Jmol
+		* @param string - property name
+		* @param string - property (sub)value
+		* @return object - key:value pairs
 		*/
-		var _events = ['ready', 'destroy', 'load', 'hover', 'pick', 'measure', 'animate', 'minimize', 'resize'];
+		this.getProperty = function(property, value){
+			var json = '[]';		
+			if (this._applet){
+				if (typeof value != 'undefined'){
+					json = this._applet.getPropertyAsJSON(property, value);
+				} else {
+					json = this._applet.getPropertyAsJSON(property);
+				}
+			}
+			return jQuery.parseJSON(json);
+		};
+		/**
+		* Send a script to Jmol
+		* @param string - script source
+		* @return void
+		*/
+		this.script = function(source){
+			if (this._applet){
+				this._applet.script(source);
+			} else {
+				this._scriptCache.push(source);
+			}
+		};
+		/**
+		* Send a script to Jmol (bypases the queue and returns callback information)
+		* @param string - script source
+		* @return string
+		*/
+		this.scriptWait = function(source, statusParams){
+			if (this._applet){
+				if (typeof statusParams != 'undefined'){
+					return this._applet.scriptWait(source, statusParams);
+				} else {
+					return this._applet.scriptWait(source);
+				}
+			}
+			return '';
+		};
+		/**
+		* Send a script to Jmol (bypases the queue and wait for any output from messages, echo, print, etc.)
+		* @param string - script source
+		* @return string
+		*/
+		this.scriptWaitOutput = function(source){
+			if (this._applet){
+				return this._applet.scriptWaitOutput(source);
+			} 
+			return '';
+		};
+		/**
+		* Send a script to Jmol (put it on the queue)
+		* @param string - script source
+		* @return string
+		*/
+		this.scriptNoWait = function(source){
+			if (this._applet){
+				return this._applet.scriptNoWait(source);
+			}
+			return '';
+		};
+		/**
+		* Check script syntax and report back with a string message
+		* @param string - script source
+		* @return string
+		*/
+		this.scriptCheck = function(source){
+			if (this._applet){
+				return this._applet.scriptCheck(source);
+			}
+			return '';
+		};
+		
+		// Private methods
+		
+		/**
+		* When applet calls a ready callback, this method must be invoked to store applet's 
+		* interface internally. Also it will perform any cached scripts.
+		* @param java - Jmol applet's interface
+		*/
+		this._ready = function(applet){
+			this._applet = applet;
+			if (this._scriptCache.length > 0){
+				for (var a in this._scriptCache){
+					this._applet.script(this._scriptCache[a]);
+				}
+			}
+			this._scriptCache = [];
+		};
+		/**
+		* Clean-up after destruction of Jmol
+		*/
+		this._destroy = function(){
+			delete this._scriptCache;
+			delete this._applet;
+			delete this.options;
+			delete this.id;
+		};
+		
+		// Internal callback manager
+		
+		/**
+		* Check and set up a callback if neccessary
+		* @param string - event name without jmol_ part
+		*/
+		this._setCallback = function(type){
+			if (typeof this._callbackCounter[type] == 'undefined'){
+				this._callbackCounter[type] = 1;
+				this.script('set ' + this._callbackNames[type] + ' "jQuery.jmol.' + type + '"');
+			}
+			this._callbackCounter[type] ++;
+		};
+		/**
+		* Signal the manager about a removal of an event. If all the listeners are removed
+		* also remove a callback from Jmol
+		* @param string - event name without jmol_ part
+		*/
+		this._removeCallback = function(type){
+			if (typeof this._callbackCounter[type] != 'undefined'){
+				this._callbackCounter[type] --;
+				if (this._callbackCounter[type] <= 0){
+					this.script('set ' + this._callbackNames[type] + ' NONE');
+				}
+			}
+		};
+	};
+	/**
+	* Jmol jQuery plugin class
+	*/
+	var jQueryJmolPlugin = (function(){
 		/**
 		* Default option set
 		*/
@@ -115,12 +186,10 @@ var _jQueryJmolRouter = (function($){
 			menuUrl : '', // URL of a menu file
 			modelUrl : '', // URL of an initial model file
 			background: '#000000', // Background color
-			events : null, // An array of events that will be listened for (possible values: hover, pick, measure, load, minimize, animate);
 			
-			// Jmol callback events
-			onEcho: null, // param: array of arguments
-			onMessage: null, // param: array of arguments
-			onScript: null, // param: array of arguments
+			// jQuery-Jmol callbacks
+			onReady: null, // param: array of arguments
+			onDestroy: null, // param: array of arguments
 			onSync: null, // param: array of arguments
 			onEval: null // param: array of arguments
 		},
@@ -161,25 +230,13 @@ var _jQueryJmolRouter = (function($){
 		* 
 		* Also thease callbacks are set after Jmol has initialized
 		*/
-		_cbAfter = {
-			hover : 'HoverCallback _jQueryJmolRouter.cbHover',
-			load : 'LoadStructCallback jQueryJmolRouter.cbLoad',
-			pick : 'PickCallback jQueryJmolRouter.cbPick',
-			measure : 'MeasureCallback jQueryJmolRouter.cbMeasure',
-			sync : 'SyncCallback jQueryJmolRouter.cbSync',
-			msg : 'MessageCallback jQueryJmolRouter.cbMessage',
-			echo : 'EchoCallback jQueryJmolRouter.cbEcho',
-			script : 'ScriptCallback jQueryJmolRouter.cbScript',
-			anim : 'AnimFrameCallback jQueryJmolRouter.cbAnim',
-			min : 'MinimizationCallback jQueryJmolRouter.cbMin',
-			resize : 'ResizeCallback jQueryJmolRouter.cbResize'
-		},
+		
 		/**
 		* Thease callbacks have to be set before the applet has initialized (documentation says so :)
 		*/
 		_cbBefore = {
-			ready : '<param name="appletReadyCallback" value="_jQueryJmolRouter.cbReady" />',
-			eval : '<param name="evalCallback" value="_jQueryJmolRouter.cbEval" />'
+			eval : '<param name="evalCallback" value="$.jmol.eval" />',
+			ready : '<param name="appletReadyCallback" value="$.jmol.ready" />'
 		},
 		/**
 		* Java applet Class ID
@@ -192,37 +249,20 @@ var _jQueryJmolRouter = (function($){
 		/**
 		* Internal applet counter, for unique ID generation
 		*/
-		_appletCounter = 0,
-		/**
-		* Internal option and applet's external interface cache
-		* key: applet's HTML ID attribute
-		* value: {
-		*   options : option cache
-		*   applet : external interface
-		* } 
-		*/
-		_appletCache = {},
-		/**
-		* Local script cache, where to store any script that has to be performed, when Jmol applet becomes ready
-		*/
-		_scriptCache = {},
-		/**
-		* Debug mode enabled?
-		*/
-		_debugMode = true;
+		appletCounter = 0;
 		
 		/**
 		* Main entry point for jQuery plugin initialization
 		* @param mixed - object for initialization options, string internal commands (hide, show, destroy)
 		* @return jQuery
 		*/
-		var _init = function(command){
+		var _process = function(command){
 			return this.each(function(i, item) {
 				var $item = $(item);
 				if ($item.data('jmol')){
+					var jmol = $item.data('jmol');
 					if (typeof command == 'string'){
 						// Perform some jQuery or DOM related tasks with Jmol Applet
-						var id = $item.attr('id');
 						switch (command){
 							case 'hide':
 								// Hide Jmol Applet
@@ -232,48 +272,31 @@ var _jQueryJmolRouter = (function($){
 								break;
 							case 'show':
 								// Restore Jmol Applet in to the view
-								var options = _appletCache[id]['options'];
-								$item.find('object').css('width', options['width'] + 'px');
-								$item.find('object').css('height', options['height'] + 'px');
+								$item.find('object').css('width', jmol.options['width'] + 'px');
+								$item.find('object').css('height', jmol.options['height'] + 'px');
 								break;
 							case 'destroy':
-								// Destroy Jmol Applet
-								var applet = _appletFind(id);
-								if (applet){
-									if (typeof applet.script != 'undefined'){ // IE says it's unknown, everybody else says it's a function
-										//TODO: ask Bob for help! It seems there is no way to do a clean destruction. We need a method to destroy applet itself
-										//applet.destroy();
-									}
-								}
-								applet = null;
-								// Internal cleanup
-								delete _appletCache[id]['applet'];
-								delete _appletCache[id]['options'];
-								delete _scriptCache[id];
 								// Remove an applet from the view completely and forget it
+								jmol._destroy();
 								$item.find('object').remove();
+								$item.data('jmol', null);
+								break;
+							case 'option':
+								// Update single or multiple options
+								var prop = arguments[1];
+								if (typeof prop == 'string'){
+									var val = arguments[2];
+									if (typeof val != 'undefined'){
+										_updateOption($item, jmol, prop, val);
+									}
+								} else if (typeof prop == 'object'){
+									_updateOptionObj($item, jmol, prop);
+								}
 								break;
 						}
 					} else if (typeof command == 'object'){
 						// Update options
-						var id = $item.attr('id');
-						var options = _appletCache[id]['options'];
-						for (var a in command){
-							switch (a){
-								case 'background':
-									_appletScript(id, 'background ' + command[a].replace('#', 'x'));
-									break;
-								case 'menuUrl':
-									_appletScript(id, 'load MENU "' + command[a] + '"');
-									break;
-								case 'modelUrl':
-									_appletScript(id, 'load "' + command[a] + '"');
-									break;
-								//TODO: events and callbacks (except for ready and onEval)
-							}
-							options[a] = command;
-						}
-						_appletCache[id]['options'] = options;
+						_updateOptionObj($item, jmol, command);
 					}
 				} else {
 					// This will allow Jmol to initialize with default options
@@ -281,193 +304,66 @@ var _jQueryJmolRouter = (function($){
 					if (typeof command == 'object'){
 						options = $.extend(options, command || {});
 					}
-					_appletCounter ++;
+					appletCounter ++;
 					var id = $item.attr('id');
 					if (typeof id == 'undefined'){
 						// We need an unique ID, so here we generate it if there is none
-						id = 'jmolApplet' + _appletCounter
+						id = 'jmolApplet' + appletCounter
 						$item.attr('id', id);
 					}
-					// Prepare cached values
-					_appletCache[id] = {
-						options : options,
-						applet : null
-					};
-					// Prepare script cache
+					var jmol = new JmolWrapper(id, options);
 					// Load default assets
-					_scriptCache[id] = new Array();
 					if (options['menuUrl'] != null && options['menuUrl'].length > 0){
-						_scriptCache[id].push('load MENU ' + options['menuUrl']);
+						jmol.script('load MENU ' + options['menuUrl']);
 					}
 					if (options['modelUrl'] != null && options['modelUrl'].length > 0){
-						_scriptCache[id].push('load ' + options['modelUrl']);
-					}
-					// Set event listeners
-					if (options['events'] != null && options['events'].length > 0){
-						for (var a in options['events']){
-							if (typeof _cbAfter[options['events'][a]] != 'undefined'){
-								_scriptCache[id].push('set ' + _cbAfter[options['events'][a]]);
-							}
-						}
+						jmol.script('load ' + options['modelUrl']);
 					}
 					// Set callback functions
-					if (options['onEcho'] != null){
-						_scriptCache[id].push('set ' + _cbAfter['echo']);
-					}
-					if (options['onScript'] != null){
-						_scriptCache[id].push('set ' + _cbAfter['script']);
-					}
-					if (options['onMessage'] != null){
-						_scriptCache[id].push('set ' + _cbAfter['message']);
-					}
 					if (options['onSync'] != null){
-						_scriptCache[id].push('set ' + _cbAfter['sync']);
+						jmol._setCallback('sync');
 					}
 					// Insert HTML block
 					$item.html(_appletBuildHtml('_' + id, options));
 					// Mark Jmol initialized
-					$item.data('jmol', true);
+					$item.data('jmol', jmol);
 				}
 			});
 		},
 		/**
-		* Jmol scripting interface through jQuery
-		* @param mixed - string or an array of script commands
-		* @return jQuery
+		* Update option array
 		*/
-		_script = function(script){
-			return this.each(function(i, item) {
-				var $item = $(item);
-				var id = $item.attr('id');
-				if ($item.data('jmol')){
-					// Push through
-					if (typeof script == 'string'){
-						_appletScript(id, script);
-					} else if (typeof script == 'object'){
-						for (var a in script){
-							_appletScript(id, script[a]);
-						}
-					}
-				} else {
-					// Not yet initialized - let's store it in the cache
-					if (typeof _scriptCache[id] != 'object'){
-						_scriptCache[id] = new Array();
-					}
-					if (typeof script == 'string'){
-						_scriptCache[id].push(script);
-					} else if (typeof script == 'object'){
-						for (var a in script){
-							_scriptCache[id].push(script[a]);
-						}
-					}
-				}
-			});
-		},
-		/**
-		* Callback wrapper function. This function receives messages from JmolCallbackWrapper, which
-		* receives original messages from Jmol applet. This function routes callback messages to any
-		* associated callback method in options.
-		* @param string - internal callback name (ready, load, echo, etc.)
-		* @param array - list of arguments passed from applet to JmolCallbackWrapper function
-		* @return integer - only for SyncCallback (everything else: void)
-		*/
-		_callback = function(name, args){
-			var id = $(this).attr('id');
-			var options = _appletCache[id]['options'];
-			switch (name){
-				case 'ready':
-					if (args[2]){
-						// Funny thing about Jmol Java applet :)
-						// fourth parameter is a reference to external interface
-						// Hacking is the way to the victory
-						_appletCache[id]['applet'] = args[3];
-						// Call for initial scripts from cache
-						if (typeof _scriptCache[id] != 'undefined'){
-							var scripts = _scriptCache[id];
-							for (var a in scripts){
-								_appletScript(id, scripts[a]);
-							}
-							// Clear cache
-							delete _scriptCache[id];
-						}
-						// Call event handlers
-						this.triggerHandler('ready', args[1]);
-					} else {
-						// Call event handlers
-						this.triggerHandler('destroy', args[1])
-						// Delete cache
-						delete _appletCache[id];
-					}
-					break;
-				case 'eval':
-					if (options['onEval'] != null){
-						options.onEval(args);
-					}
-					break;
-				case 'echo':
-					if (options['onEcho'] != null){
-						options.onEcho(args);
-					}
-					break;
-				case 'message':
-					if (options['onMessage'] != null){
-						options.onMessage(args);
-					}
-					break;
-				case 'script':
-					if (options['onScript'] != null){
-						options.onScript(args);
-					}
-					break;
-				case 'sync':
-					if (options['onSync'] != null){
-						return options.onSync();
-					}
-					return 1;
-					break;
+		_updateOptionObj = function($item, jmol, options){
+			for (var a in options){
+				_updateOption($item, jmol, a, options[a]);
 			}
 		},
 		/**
-		* Find a Jmol applet
-		* @param string - ID attribute
-		* @return object - hopefully an applet
+		* Update single option
 		*/
-		_appletFind = function(id){
-			if (typeof _appletCache[id] != 'undefined'){
-				if (_appletCache[id]['applet'] !== null){
-					return _appletCache[id]['applet'];
-				}
+		_updateOption = function($item, jmol, name, value){
+		  switch (name){
+				case 'background':
+					jmol.script('background ' + value.replace('#', 'x'));
+					break;
+				case 'menuUrl':
+					jmol.script('load MENU "' + value + '"');
+					break;
+				case 'modelUrl':
+					jmol.script('load "' + value + '"');
+					break;
+				case 'onSync':
+					jmol.setCallback('sync');
+					break;
+				case 'width':
+					$item.find('object').css('width', value + 'px');
+					break;
+				case 'height':
+					$item.find('object').css('width', value + 'px');
+					break;	
 			}
-			var doc = document;
-			if (doc.getElementById(id))
-				return doc.getElementById(id);
-			else if (doc.applets)
-				return doc.applets[id];
-			else
-				return doc[id];
-		}
-		/**
-		* Pass a script to Jmol applet
-		* @param string - Jmol applet object ID
-		* @param string - Jmol script
-		* @return boolean
-		*/
-		_appletScript = function(id, command){
-			var applet = _appletFind(id);
-			if (applet){
-				if (typeof applet.script != 'undefined'){ // IE says it's unknown, everybody else says it's a function
-					applet.script(command);
-					applet = null;
-					return true;
-				} else {
-					_debug('Oppsy daisy, Jmol has no method script()');
-				}
-			} else {
-				_debug('Oppsy daisy, Jmol was not found');
-			}
-			applet = null;
-			return false;
-		},
+			jmol.options[name] = value;
+		},	
 		/**
 		* Build applet's HTML block from a template
 		* @param string - ID attribute
@@ -512,39 +408,222 @@ var _jQueryJmolRouter = (function($){
 			return html;
 		},
 		/**
-		* Debug wrapper
+		* Process calllbacks coming from Jmol
+		* @param string - callback name
+		* @param object - list of arguments passed to listener
+		* @return integer - for sync callback
 		*/
-		_debug = function(msg){
-			if (_debugMode){
-				if (typeof console == 'object'){
-					console.log(msg);
-				} else {
-					if (typeof msg == 'object'){
-						var str = '';
-						for (var a in msg){
-							str += a + ': ' + msg[a] + '\n';
+		_callback = function(type, args){
+			var shift = Array.prototype.shift;
+			var unshift = Array.prototype.unshift;
+			var id = shift.call(args);
+			var $item = $('#' + id.substr(1));
+			if ($item.data('jmol')){
+				var jmol = $item.data('jmol');
+				switch (type){
+					case 'ready':
+						if (args[1]){
+							jmol._ready(args[2]);
+							if (jmol.options['onReady'] != null){
+								jmol.options.onReady(jmol);
+							}
+						} else {
+							if (jmol.options['onDestroy'] != null){
+								jmol.options.onDestroy();
+							}
 						}
-						msg = str;
-					}
-					alert(msg);
+						break;
+					case 'eval':
+						if (jmol.options['onEval'] != null){
+							jmol.options.onEval(jmol, args);
+						}
+						break;
+					case 'sync':
+						if (jmol.options['onSync'] != null){
+							return jmol.options.onSync(jmol, args);
+						}
+						return 1
+						break;
 				}
+			}
+		},
+		/**
+		* Process events coming from Jmol
+		* @param string - callback name
+		* @param object - list of arguments passed to listener
+		*/
+		_event = function(type, args){
+			var shift = Array.prototype.shift;
+			var unshift = Array.prototype.unshift;
+			var id = shift.call(args);
+			var $item = $('#' + id.substr(1));
+			if ($item.data('jmol')){
+				var jmol = $item.data('jmol');
+				var e = $.Event('jmol_' + type);
+				var eargs = [jmol];
+				if (type == 'animate'){
+					eargs.push({
+						frameIdx : args[0],
+						fileNum : args[1],
+						modelNum : args[2],
+						firstFrame : args[3],
+						lastFrame : args[4],
+						animState : args[5],
+						animDir : args[6],
+						direction : args[7]
+					});
+				} else if (type == 'hover' || type == 'pick'){
+					eargs.push({
+						label : args[0],
+						atomIdx : args[1]
+					});
+				} else if (type == 'load'){
+					eargs.push({
+						fileUrl : args[0],
+						fileName : args[1],
+						title : args[2],
+						errorMsg : args[3],
+						status : args[4],
+						frameBefore : args[5],
+						frameLast : args[6]
+					});
+				} else if (type == 'minimize'){
+					eargs.push({
+						status : args[0],
+						iteration : args[1],
+						energy : args[2],
+						energyDelta : args[3]
+					});
+				} else if (type == 'measure'){
+					eargs.push({
+						label : args[0],
+						status : args[2],
+						value : args[3]
+					});
+				} else if (type == 'echo' || type == 'message' || type == 'script'){
+					eargs.push(args[0]);
+				} else if (type == 'resize'){
+					eargs.push({
+						width : args[0],
+						height : args[0]
+					});
+				}
+				$item.triggerHandler(e, eargs);
 			}
 		};
 		
+		// We need to override on() and off() methods
+		var _oldBind = $.event.add;
+		$.event.add = function(elem, types, handler, data){
+			$(elem).each(function(i, item){
+				if ($(item).data('jmol')){
+					var jmol = $(item).data('jmol');
+					var etypes = types.split(' ');
+					for (var a in etypes){
+						switch (etypes[a]){
+							case 'jmol_animate':
+							case 'jmol_echo':
+							case 'jmol_hover':
+							case 'jmol_load':
+							case 'jmol_measure':
+							case 'jmol_message':
+							case 'jmol_minimize':
+							case 'jmol_pick':
+							case 'jmol_resize':
+							case 'jmol_script':
+								jmol._setCallback(etypes[a].substr(5));
+					  		break;
+						}
+					}
+				}
+			});
+			// Pass the controll back to old one
+			return _oldBind(elem, types, handler, data);
+		}
+		var _oldUnBind = $.event.remove;
+		$.fn.remove = function(elem, types, handler, pos){
+			$(elem).each(function(i, item){
+				if ($(item).data('jmol')){
+					var jmol = $(item).data('jmol');
+					var etypes = types.split(' ');
+					for (var a in etypes){
+						switch (etypes[a]){
+							case 'jmol_animate':
+							case 'jmol_echo':
+							case 'jmol_hover':
+							case 'jmol_load':
+							case 'jmol_measure':
+							case 'jmol_message':
+							case 'jmol_minimize':
+							case 'jmol_pick':
+							case 'jmol_resize':
+							case 'jmol_script':
+					  		jmol._removeCallback(etypes[a].substr(5));
+					  		break;
+						}
+					}
+				}
+			});
+			// Pass the controll back to old one
+			return _oldUnBind(elem, types, handler, pos);
+		}
+		
+		// Export methods to public space
 		return {
-			init : _init,
-			script : _script,
-			callback : _callback
+			process : _process,
+			callbacks : {
+				eval : function(){
+					_callback('eval', arguments);
+				},
+				sync : function(){
+					return _callback('sync', arguments);
+				},
+				message : function(){
+					_event('message', arguments);
+				},
+				echo : function(){
+					_event('echo', arguments);
+				},
+				script : function(){
+					_event('script', arguments);
+				},
+				ready : function(){
+					_callback('ready', arguments);
+				},
+				load : function(){
+					_event('load', arguments);
+				},
+				hover : function(){
+					_event('hover', arguments);
+				},
+				pick : function(){
+					_event('pick', arguments);
+				},
+				measure : function(){
+					_event('measure', arguments);
+				},
+				animate : function(){
+					_event('animate', arguments);
+				},
+				minimize : function(){
+					_event('minimize', arguments);
+				},
+				resize : function(){
+					_event('resize', arguments);
+				}
+			}
 		};
 	})();
 	
+	// Register plugin
 	$.fn.extend({
-		// register jQueryJmol plugin
-		jmol : jQueryJmolPlugin.init,
-		// We separate Jmol scripting interface so we can add our own commands that
-		// we need for Jmol-jQuery operations
-		jmolscript : jQueryJmolPlugin.script,
-		// register jQueryJmol backdoor for callback router (private use only)
-		_jmol_cb : jQueryJmolPlugin.callback
+		// register jQuery-Jmol plugin
+		jmol : jQueryJmolPlugin.process
 	});
+	
+	// Register callback methods into global jQuery namespace
+	$.extend({
+		jmol : jQueryJmolPlugin.callbacks
+	});
+	
 })(jQuery);

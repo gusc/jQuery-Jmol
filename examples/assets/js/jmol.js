@@ -19,6 +19,13 @@ var Jmol = function(placeholder, options){
 		alert('jQuery is required to run Jmol');
 		return false;
 	}
+	this._jmol = null;
+	var _this = this;
+	var _onReady = options['onReady'];
+	options['onReady'] = function(jmol){
+		_this._jmol = jmol;
+		_onReady(jmol);
+	};
 	this.$jmol = jQuery(placeholder).jmol(options);
 };
 /**
@@ -26,7 +33,7 @@ var Jmol = function(placeholder, options){
 * @param script - script source
 */
 Jmol.prototype.script = function(script){
-	this.$jmol.jmolscript(script);
+	this._jmol.script(script);
 };
 /**
 * Binds an event listener on Jmol to listen for any events coming from applet
@@ -63,7 +70,6 @@ Jmol.prototype.removeEventListener = function(event, listener){
 */
 Jmol.prototype.bindClickScript = function(element, options){
 	var _this = this;
-	var $jmol = this.$jmol;
 	$(element).bind('click', function(e){
 		e.preventDefault();
 		var $this = $(this);
@@ -85,7 +91,7 @@ Jmol.prototype.bindClickScript = function(element, options){
 			script = options(_this, this);
 		}
 		if (script.length > 0){
-			$jmol.jmolscript(script);
+			_this._jmol.script(script);
 		}
 	});
 };
@@ -107,7 +113,6 @@ Jmol.prototype.unbindChangeScript = function(element){
 */
 Jmol.prototype.bindChangeScript = function(element, options, options_off){
 	var _this = this;
-	var $jmol = this.$jmol;
 	$(element).bind('change', function(e){
 		e.preventDefault();
 		var $this = $(this);
@@ -161,7 +166,7 @@ Jmol.prototype.bindChangeScript = function(element, options, options_off){
 			// TODO: think about it
 		}
 		if (script.length > 0){
-			$jmol.jmolscript(script);
+			_this._jmol.script(script);
 		}
 	});
 };
@@ -210,14 +215,14 @@ Jmol.prototype.addDataScript = function(element){
 */
 Jmol.prototype.addURLLoader = function(element){
 	if ($(element).is('a') && $(this).attr('href')){
-		var $jmol = this.$jmol;
+		var _this = this;
 		$(element).click(function(e){
 			e.preventDefault();
 			var $this = $(this);
 			if ($this.attr('href')){
 				var url = $(this).attr('href');
 				if (url != '#' && url.toLowerCase().indexOf('javascript:') < 0){
-					$jmol.jmolscript('load "' + url + '"');
+					_this._jmol.script('load "' + url + '"');
 				}
 			}
 		});
@@ -230,7 +235,7 @@ Jmol.prototype.addURLLoader = function(element){
 */
 Jmol.prototype.addAJAXLoader = function(element){
 	if ($(element).is('a')){
-		var $jmol = this.$jmol;
+		var _this = this;
 		$(element).click(function(e){
 			e.preventDefault();
 			var $this = $(this);
@@ -241,7 +246,7 @@ Jmol.prototype.addAJAXLoader = function(element){
 						dataType: 'text',
 						type: 'get',
 						success: function(data){
-							$jmol.jmolscript('load INLINE "' + data + '"');		
+							_this._jmol.script('load INLINE "' + data + '"');		
 						}
 					});
 				}

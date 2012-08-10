@@ -5,32 +5,33 @@ function clear(){
 }
 $(document).ready(function(){
 	// Initialize Jmol
-	var jmol = new Jmol('#jmol', {
+	$('#jmol').jmol({
 		appletUrl : 'assets/java/jmol/',
 		width: 400,
 		height: 400,
 		modelUrl : 'data/ch4.pdb',
-		background: '#FFFFFF',
-		events : ['hover', 'pick'],
-		onEcho : function(msg){
+		background: '#FFFFFF'
+	}).bind('jmol_echo', function(e, jmol, msg){
 			$('.jmol-log').append('<br />' + msg);
+	}).bind('jmol_hover', function(e, jmol, data){
+		$('.jmol-log').append('<br />' + data.label);
+	}).bind('jmol_pick', function(e, jmol, data){
+		$('.jmol-log').append('<br />' + data.label);
+	});
+	// Send a script from text area to Jmol
+	$('.jmol-send').bind('click', function(e){
+		e.preventDefault();
+		jmol.script($('.jmol-input').val());
+		// or
+		// $('#jmol').data('jmol').script($('.jmol-input').val());
+	});
+	// Perform scripting actions stored in data attributes
+	$('.jmol-controll').bind('click', function(e){
+		e.preventDefault();
+		if ($(this).data('script')){
+			$('#jmol').data('jmol').script($(this).data('script'));
 		}
 	});
-	// Bind a listener for hover event
-	jmol.addEventListener('hover', function(e, arguments){
-		$('.jmol-log').append('<br />' + arguments[1]);
-	});
-	// Bind a listener for pick event
-	jmol.addEventListener('pick', function(e, arguments){
-		$('.jmol-log').append('<br />' + arguments[1]);
-	});
-	// Create a callback script element
-	jmol.addCallbackScript('.jmol-send', function(){
-		return $('.jmol-input').val();
-	});
-	// Create a data script element
-	jmol.addDataScript('.jmol-controll');
-	
 	// Bind a clear function to textarea
 	$('.jmol-input').bind('focus', clear);
 });
